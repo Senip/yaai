@@ -11,7 +11,7 @@ import java.net.Socket;
  *
  * @author Ru
  */
-public class TestClass {
+public class TestSocket {
 
     public static void main(String[] args) {
         try {

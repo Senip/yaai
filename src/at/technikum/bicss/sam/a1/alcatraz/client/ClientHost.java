@@ -24,7 +24,7 @@ public class ClientHost {
         String server_adr = Util.getServerAddress();
         String name = new String("PLAYER2");
         int port = Util.getRMIPort();
-        //System.setProperty("java.rmi.server.hostname", "10.0.0.4");
+        System.setProperty("java.rmi.server.hostname", "10.0.0.4");
 
         /*
          * Register own Client-Services
@@ -75,9 +75,7 @@ public class ClientHost {
 
 
             InetAddress local_addr = InetAddress.getLocalHost();
-            System.out.println(local_addr.getHostAddress());
             server.register(name, local_addr.getHostName().toString());
-         
 
         } catch (Exception e) {
             e.printStackTrace();

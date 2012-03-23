@@ -20,7 +20,7 @@ public class ServerHost {
     public static void main(String args[]) {
         Util.readProps();
         int port = Util.getRMIPort();
-        //System.setProperty("java.rmi.server.hostname", "10.0.0.4");
+        System.setProperty("java.rmi.server.hostname", "10.0.0.2");
 
         /*
          * Register Server-Services
