@@ -26,15 +26,17 @@ public class ServerHost {
          * Register Server-Services
          */
         Registry rmireg = null;
-        System.out.println("SERVER: Starting up registry...");
+        System.out.println("SERVER: Set up own registry...");
         try {
             rmireg = LocateRegistry.createRegistry(port);
         } catch (RemoteException e) {
-            System.err.println("SERVER: Not able to create Registry:" 
-                    + e.getMessage() + "\ntry to bind to get active registry");
+            System.err.println("SERVER: Not able to create registry on port " + port);                      
+            System.err.println(e.getMessage());
+            System.err.println("try to search for active registry");
         }
         try {
             rmireg = LocateRegistry.getRegistry(port);
+            System.out.println("SERVER: Got registry on port " + port);
         } catch (RemoteException e) {
             e.printStackTrace();
         }

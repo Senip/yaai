@@ -29,8 +29,8 @@ public final class Util {
         }
     }
 
-    public static String getServerAddress() {
-        return props.getProperty(SERVER_ADDRESS);
+    public static String[] getServerAddress() {
+        return props.getProperty(SERVER_ADDRESS).split(",");
     }
 
     public static int getRMIPort() {
@@ -52,8 +52,23 @@ public final class Util {
 
     public static void printRMIReg(Registry rmireg)
             throws RemoteException, AccessException {
+        System.out.println("Objects available on " + rmireg.toString());
         for (String s : rmireg.list()) {
             System.out.println(s);
         }
+    }
+
+    /**
+     * Checks whether a string is empty an returns {@code true} if it is,
+     * otherwise {@code false}
+     *
+     * @param value
+     * @return true if string is empty, otherwise false
+     */
+    public static boolean isEmpty(String value) {
+        if (value == null || "".equals(value)) {
+            return true;
+        }
+        return false;
     }
 }
