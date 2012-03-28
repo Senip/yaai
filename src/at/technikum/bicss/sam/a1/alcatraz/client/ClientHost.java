@@ -105,8 +105,8 @@ public class ClientHost {
             IServer server = (IServer) Naming.lookup(rmi_adr);
 
 
-            InetAddress local_addr = InetAddress.getLocalHost();
-            server.register(name, local_addr.getHostName().toString());
+            //InetAddress local_addr = InetAddress.getLocalHost();
+            server.register(name, own_addr);
 
         } catch (Exception e) {
             e.printStackTrace();
