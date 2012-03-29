@@ -11,6 +11,7 @@ public final class Util {
     static final private String PROP_FILE = "alcatraz.props";
     static final public String SERVER_ADDRESS = "server_address";
     static final public String RMIREG_PORT = "registry_port";
+    static final public String GROUP_NAME = "group_name";
     private static Properties props = null;
 
     //prohibit instances of class Util
@@ -36,7 +37,12 @@ public final class Util {
     public static int getRMIPort() {
         return Integer.valueOf(props.getProperty(RMIREG_PORT));
     }
-
+    
+    // spread group name
+    public static String getGroupName() {
+        return props.getProperty(GROUP_NAME);
+    }
+        
     public static Properties getProps() {
         FileInputStream fileIn = null;
         Properties props = new Properties();

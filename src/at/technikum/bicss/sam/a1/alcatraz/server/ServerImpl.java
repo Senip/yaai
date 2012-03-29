@@ -7,10 +7,10 @@ package at.technikum.bicss.sam.a1.alcatraz.server;
 import at.technikum.bicss.sam.a1.alcatraz.common.IClient;
 import at.technikum.bicss.sam.a1.alcatraz.common.IServer;
 import at.technikum.bicss.sam.a1.alcatraz.common.Player;
+import at.technikum.bicss.sam.a1.alcatraz.server.spread.PlayerList;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.LinkedList;
 
 /**
  *
@@ -18,10 +18,12 @@ import java.util.LinkedList;
  */
 public class ServerImpl extends UnicastRemoteObject implements IServer {
 
-    private LinkedList<Player> PlayerList = new LinkedList();
+    private PlayerList PlayerList;
 
-    public ServerImpl() throws RemoteException {
+    public ServerImpl(PlayerList pl) throws RemoteException {
         super();
+        // get playerlist with already instanced spread server
+        PlayerList = pl;
     }
 
     private void broadcastPlayerList() {
@@ -30,7 +32,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
             rmi_adr = new String("rmi://" + p.getAddress() + ":" + 1099 + "/Alcatraz/ClientImpl/" + p.getName());
             try {
                 IClient c  = (IClient) Naming.lookup(rmi_adr);
-                c.updatePlayerList(PlayerList);
+                c.updatePlayerList(PlayerList.getLinkedList());
             }
             catch (Exception e) {
                 e.printStackTrace();

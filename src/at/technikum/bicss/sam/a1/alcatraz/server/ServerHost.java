@@ -6,6 +6,8 @@ package at.technikum.bicss.sam.a1.alcatraz.server;
 
 import at.technikum.bicss.sam.a1.alcatraz.common.IServer;
 import at.technikum.bicss.sam.a1.alcatraz.common.Util;
+import at.technikum.bicss.sam.a1.alcatraz.server.spread.PlayerList;
+import at.technikum.bicss.sam.a1.alcatraz.server.spread.SpreadServer;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -21,7 +23,15 @@ public class ServerHost {
         Util.readProps();
         int port = Util.getRMIPort();
         System.setProperty("java.rmi.server.hostname", "10.0.0.2");
-
+        
+        /*
+         * Spread instances: PlayerList => GroupMessage on add and remove
+         * 
+         */
+        SpreadServer spread_server = SpreadServer.getInstance();
+        PlayerList player_list = new PlayerList(spread_server);
+        
+        
         /*
          * Register Server-Services
          */
@@ -43,7 +53,7 @@ public class ServerHost {
 
         System.out.println("SERVER: Bind...");
         try {
-            IServer server = new ServerImpl();
+            IServer server = new ServerImpl(player_list);
             //rmireg.rebind("rmi://localhost:1099/Alcatraz/ServerImpl", server);
             Naming.rebind("rmi://localhost:1099/Alcatraz/ServerImpl", server);
             Util.printRMIReg(rmireg);
