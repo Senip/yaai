@@ -36,12 +36,8 @@ public class PlayerList implements Serializable, Iterable<Player>{
    
     }
     
-    
     public LinkedList<Player> getLinkedList(){
         return player_list;
     }
-
-
-
 
 }

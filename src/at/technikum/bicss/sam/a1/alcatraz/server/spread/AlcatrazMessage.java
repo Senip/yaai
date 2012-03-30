@@ -13,9 +13,9 @@ import java.io.Serializable;
  * Header: Type of Message (master-server, player-list)
  * Body: (id of master server, PlayerList)
  */
-public class SpreadMessage implements Serializable{
+public class AlcatrazMessage implements Serializable{
     // header if upadte on playerlist or a new masterserver
-    private String header = "";
+    private MessageHeader header;
     // new masterserver id or playerlist
     private Object body = null;
 
@@ -27,12 +27,20 @@ public class SpreadMessage implements Serializable{
         this.body = body;
     }
 
-    public String getHeader() {
+    public MessageHeader getHeader() {
         return header;
     }
 
-    public void setHeader(String header) {
+    public void setHeader(MessageHeader header) {
         this.header = header;
+    }
+    
+    // guess there comes mr. header and his bride mr. body
+    public AlcatrazMessage(MessageHeader h, Object o) {
+        if(o != null){
+            header = h;
+            body = o;
+        }
     }
     
     

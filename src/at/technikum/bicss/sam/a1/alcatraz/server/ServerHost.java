@@ -21,16 +21,16 @@ public class ServerHost {
 
     public static void main(String args[]) {
         Util.readProps();
-        int port = Util.getRMIPort();
+        int port = Util.getServerRMIPort();
         System.setProperty("java.rmi.server.hostname", "10.0.0.2");
-        
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        System.out.print(maxMemory);
         /*
          * Spread instances: PlayerList => GroupMessage on add and remove
          * 
          */
         SpreadServer spread_server = SpreadServer.getInstance();
         PlayerList player_list = new PlayerList(spread_server);
-        
         
         /*
          * Register Server-Services

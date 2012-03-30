@@ -10,7 +10,8 @@ public final class Util {
 
     static final private String PROP_FILE = "alcatraz.props";
     static final public String SERVER_ADDRESS = "server_address";
-    static final public String RMIREG_PORT = "registry_port";
+    static final public String SERVER_RMIREG_PORT = "server_registry_port";
+    static final public String CLIENT_RMIREG_PORT = "client_registry_port";
     static final public String GROUP_NAME = "group_name";
     private static Properties props = null;
 
@@ -34,9 +35,14 @@ public final class Util {
         return props.getProperty(SERVER_ADDRESS).split(",");
     }
 
-    public static int getRMIPort() {
-        return Integer.valueOf(props.getProperty(RMIREG_PORT));
+    public static int getServerRMIPort() {
+        return Integer.valueOf(props.getProperty(SERVER_RMIREG_PORT));
     }
+    
+    public static int getClientRMIPort() {
+        return Integer.valueOf(props.getProperty(CLIENT_RMIREG_PORT));
+    }
+    
     
     // spread group name
     public static String getGroupName() {
