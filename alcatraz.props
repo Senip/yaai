@@ -1,5 +1,7 @@
 #Properties for Alcatraz Game
 #Sat Jan 21 01:33:44 CET 2012
-server_address=10.0.0.120,10.0.0.2,10.0.0.3,192.168.1.100
-registry_port=1099
+server_address=10.0.0.120,10.0.0.2,10.0.0.3,192.168.1.109,192.168.1.110
+server_registry_port=1099
+client_registry_port=1098
 group_name=alcatraz
+

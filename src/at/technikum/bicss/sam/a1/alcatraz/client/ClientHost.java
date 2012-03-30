@@ -26,14 +26,15 @@ public class ClientHost {
         Util.readProps();
         String server_adr = null;
         String own_addr = null;
-        String name = new String(args[1]);
-        int port = Util.getRMIPort();
+        //String name = new String(args[1]);
+        String name = "gabriel";
+        int server_port = Util.getServerRMIPort();
 
         // Check which of the servers is reachable
         for (String s_addr : Util.getServerAddress()) {
             try {
                 Socket sock = new Socket();
-                SocketAddress sock_addr = new InetSocketAddress(s_addr, port);
+                SocketAddress sock_addr = new InetSocketAddress(s_addr, server_port);
                 sock.connect(sock_addr, 500);
                 server_adr = s_addr;
                 System.out.println(name + ": Reached server " + server_adr);
@@ -41,10 +42,10 @@ public class ClientHost {
                  * remember own address with which the server was reached
                  */
                 own_addr = sock.getLocalAddress().getHostAddress();                
-                sock.getLocalAddress().isReachable(port);
+                sock.getLocalAddress().isReachable(server_port);
                 break;
             } catch (Exception e) {
-                System.err.println("Could not reach server at " + s_addr + " on " + port);
+                System.err.println("Could not reach server at " + s_addr + " on " + server_port);
                 System.err.println(e.toString());
             }
         }
@@ -61,15 +62,15 @@ public class ClientHost {
         Registry rmireg = null;
         System.out.println(name + ": Set up own registry...");
         try {
-            rmireg = LocateRegistry.createRegistry(port);
+            rmireg = LocateRegistry.createRegistry(server_port);
         } catch (RemoteException e) {
-            System.err.println(name + ": Not able to create registry on port: " + port);
+            System.err.println(name + ": Not able to create registry on server_port: " + server_port);
             System.err.println(e.getMessage());
             System.err.println("try to search for active registry");
         }
         try {
-            rmireg = LocateRegistry.getRegistry(port);
-            System.out.println(name + ": Got registry on port " + port);
+            rmireg = LocateRegistry.getRegistry(server_port);
+            System.out.println(name + ": Got registry on server_port " + server_port);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -78,7 +79,7 @@ public class ClientHost {
         try {
             IClient client = new ClientImpl();
             //rmireg.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/ + name", server);
-            Naming.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/" + name, client);
+            Naming.rebind("rmi://localhost:1098/Alcatraz/ClientImpl/" + name, client);
             Util.printRMIReg(rmireg);
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,13 +95,13 @@ public class ClientHost {
         try {
 
 //            System.out.println("Locating RMI-Registry of Server");
-//            Registry rmireg = LocateRegistry.getRegistry(server_adr, port);
+//            Registry rmireg = LocateRegistry.getRegistry(server_adr, server_port);
 //            Util.printRMIReg(rmireg);
-//            String rmi_adr = new String("rmi://" + "localhost" + ":" + port + "/Alcatraz/ServerImpl");
+//            String rmi_adr = new String("rmi://" + "localhost" + ":" + server_port + "/Alcatraz/ServerImpl");
 //            System.out.println("Looking up:" + rmi_adr);
 //            IServer server = (IServer) rmireg.lookup(rmi_adr);
 
-            String rmi_adr = new String("rmi://" + server_adr + ":" + port + "/Alcatraz/ServerImpl");
+            String rmi_adr = new String("rmi://" + server_adr + ":" + server_port + "/Alcatraz/ServerImpl");
             System.out.println(name + ": Looking up:" + rmi_adr);
             IServer server = (IServer) Naming.lookup(rmi_adr);
 
