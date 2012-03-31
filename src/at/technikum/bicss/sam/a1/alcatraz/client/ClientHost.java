@@ -18,16 +18,24 @@ import java.rmi.registry.Registry;
 
 /**
  *
- * @author Rudolf Galler <ic10b039@technikum-wien.at> [1010258039]
+ * @auth8or Rudolf Galler <ic10b039@technikum-wien.at> [1010258039]
  */
 public class ClientHost {
-
+    
+    String server_adr = null;
+    String own_addr = null;
+    String name = null; //new String(args[1]);
+    int port = 0;
+    Registry rmireg = null;
+    ClientGUI gui = null;
+    
     public static void main(String[] args) {
+        new ClientHost();
+    }
+    
+    public ClientHost() {
         Util.readProps();
-        String server_adr = null;
-        String own_addr = null;
-        String name = new String(args[1]);
-        int port = Util.getRMIPort();
+        port = Util.getRMIPort();
 
         // Check which of the servers is reachable
         for (String s_addr : Util.getServerAddress()) {
@@ -58,7 +66,7 @@ public class ClientHost {
         /*
          * Register own Client-Services
          */
-        Registry rmireg = null;
+        
         System.out.println(name + ": Set up own registry...");
         try {
             rmireg = LocateRegistry.createRegistry(port);
@@ -74,9 +82,15 @@ public class ClientHost {
             e.printStackTrace();
         }
 
+        gui = new ClientGUI(this);
+        gui.setVisible(true);
+    }
+    
+    public void bindPlayer(String name) {
+  
         System.out.println(name + ": Binding own services...");
         try {
-            IClient client = new ClientImpl();
+            IClient client = new ClientImpl(this);
             //rmireg.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/ + name", server);
             Naming.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/" + name, client);
             Util.printRMIReg(rmireg);
@@ -86,7 +100,7 @@ public class ClientHost {
 
 
         System.out.println(name + ": Alcatraz Client running.");
-
+        
 
         /*
          * Register Player at Server
