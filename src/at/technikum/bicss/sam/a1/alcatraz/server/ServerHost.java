@@ -22,7 +22,7 @@ public class ServerHost {
     public static void main(String args[]) {
         Util.readProps();
         int port = Util.getServerRMIPort();
-        System.setProperty("java.rmi.server.hostname", "10.0.0.2");
+        System.setProperty("java.rmi.server.hostname", "10.0.0.3");
         long maxMemory = Runtime.getRuntime().maxMemory();
         System.out.print(maxMemory);
         /*
@@ -63,3 +63,4 @@ public class ServerHost {
         }
     }
 }
+       

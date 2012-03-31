@@ -18,17 +18,26 @@ import java.rmi.registry.Registry;
 
 /**
  *
- * @author Rudolf Galler <ic10b039@technikum-wien.at> [1010258039]
+ * @auth8or Rudolf Galler <ic10b039@technikum-wien.at> [1010258039]
  */
 public class ClientHost {
-
+    
+    String server_adr = null;
+    String own_addr = null;
+    String name = null; //new String(args[1]);
+    int client_port = 0;
+    int server_port = 0;
+    Registry rmireg = null;
+    ClientGUI gui = null;
+    
     public static void main(String[] args) {
+        new ClientHost();
+    }
+    
+    public ClientHost() {
         Util.readProps();
-        String server_adr = null;
-        String own_addr = null;
-        //String name = new String(args[1]);
-        String name = "gabriel";
-        int server_port = Util.getServerRMIPort();
+        client_port = Util.getClientRMIPort();
+        server_port = Util.getServerRMIPort();
 
         // Check which of the servers is reachable
         for (String s_addr : Util.getServerAddress()) {
@@ -59,27 +68,33 @@ public class ClientHost {
         /*
          * Register own Client-Services
          */
-        Registry rmireg = null;
+        
         System.out.println(name + ": Set up own registry...");
         try {
-            rmireg = LocateRegistry.createRegistry(server_port);
+            rmireg = LocateRegistry.createRegistry(client_port);
         } catch (RemoteException e) {
-            System.err.println(name + ": Not able to create registry on server_port: " + server_port);
+            System.err.println(name + ": Not able to create registry on port: " + client_port);
             System.err.println(e.getMessage());
             System.err.println("try to search for active registry");
         }
         try {
-            rmireg = LocateRegistry.getRegistry(server_port);
-            System.out.println(name + ": Got registry on server_port " + server_port);
+            rmireg = LocateRegistry.getRegistry(client_port);
+            System.out.println(name + ": Got registry on port " + client_port);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
 
+        gui = new ClientGUI(this);
+        gui.setVisible(true);
+    }
+    
+    public void bindPlayer(String name) {
+  
         System.out.println(name + ": Binding own services...");
         try {
-            IClient client = new ClientImpl();
+            IClient client = new ClientImpl(this);
             //rmireg.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/ + name", server);
-            Naming.rebind("rmi://localhost:1098/Alcatraz/ClientImpl/" + name, client);
+            Naming.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/" + name, client);
             Util.printRMIReg(rmireg);
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,7 +102,7 @@ public class ClientHost {
 
 
         System.out.println(name + ": Alcatraz Client running.");
-
+        
 
         /*
          * Register Player at Server
@@ -95,9 +110,9 @@ public class ClientHost {
         try {
 
 //            System.out.println("Locating RMI-Registry of Server");
-//            Registry rmireg = LocateRegistry.getRegistry(server_adr, server_port);
+//            Registry rmireg = LocateRegistry.getRegistry(server_adr, port);
 //            Util.printRMIReg(rmireg);
-//            String rmi_adr = new String("rmi://" + "localhost" + ":" + server_port + "/Alcatraz/ServerImpl");
+//            String rmi_adr = new String("rmi://" + "localhost" + ":" + port + "/Alcatraz/ServerImpl");
 //            System.out.println("Looking up:" + rmi_adr);
 //            IServer server = (IServer) rmireg.lookup(rmi_adr);
 
