@@ -26,12 +26,14 @@ public class ServerHost {
         long maxMemory = Runtime.getRuntime().maxMemory();
         System.out.print(maxMemory);
         /*
-         * Spread instances: PlayerList => GroupMessage on add and remove
+         * Spread instances: PlayerList => spread GroupMessage on add and remove
          * 
          */
         SpreadServer spread_server = SpreadServer.getInstance();
-        PlayerList player_list = new PlayerList(spread_server);
-        
+        PlayerList player_list = new PlayerList();
+        player_list.addObjectChangedListner(spread_server);
+        // vice versa to update player_list on spread nodes 
+        spread_server.updatePlayerListOnSpreadUpdate(player_list);
         /*
          * Register Server-Services
          */
