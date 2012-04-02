@@ -51,11 +51,22 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
         broadcastPlayerList();
     }
 
-    public void deregister(String name) throws RemoteException {
+    public void deregister(String name) throws RemoteException {        
+        for(Player p : player_list){
+            if(p.getName().equals(name)) {
+                player_list.remove(p);
+            }
+        }
+        broadcastPlayerList();
     }
 
     public void setStatus(String name, boolean ready) throws RemoteException {
-                
+        for(Player p : player_list){
+            if(p.getName().equals(name)) {
+                p.setReady(ready);
+            }
+        }
+        broadcastPlayerList();
     }
 
     @Override

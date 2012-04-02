@@ -20,7 +20,7 @@ import javax.swing.border.BevelBorder;
  * @author Ru
  */
 public class ClientGUI extends javax.swing.JFrame {
-    
+
     private ClientHost hosthandle = null;
 
     /**
@@ -29,7 +29,7 @@ public class ClientGUI extends javax.swing.JFrame {
     public ClientGUI(ClientHost host) {
         initComponents();
         this.hosthandle = host;
-        
+
     }
 
     /**
@@ -50,27 +50,16 @@ public class ClientGUI extends javax.swing.JFrame {
         readyButton = new javax.swing.JButton();
         statusPanel = new javax.swing.JPanel();
         statusLabel = new javax.swing.JLabel();
-        unregButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        playerName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                playerNameActionPerformed(evt);
-            }
-        });
-
-        jLabel_PName.setText("Playername");
+        jLabel_PName.setText("Playername:");
 
         regButton.setText("Register");
-        regButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                regButtonMouseClicked(evt);
-            }
-        });
+        regButton.setActionCommand("register");
         regButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                regButtonActionPerformed(evt);
+                ButtonActionPerformed(evt);
             }
         });
 
@@ -78,15 +67,12 @@ public class ClientGUI extends javax.swing.JFrame {
 
         jLabel_PList.setText("Playerlist");
 
-        readyButton.setText("READY!");
-        readyButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                readyButtonMouseClicked(evt);
-            }
-        });
+        readyButton.setText("Ready!");
+        readyButton.setActionCommand("ready");
+        readyButton.setEnabled(false);
         readyButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                readyButtonActionPerformed(evt);
+                ButtonActionPerformed(evt);
             }
         });
 
@@ -112,45 +98,46 @@ public class ClientGUI extends javax.swing.JFrame {
                 .addGap(7, 7, 7))
         );
 
-        unregButton.setText("Unregister");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(statusPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(regButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 194, Short.MAX_VALUE)
+                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel_PList)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel_PName)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(playerName))
-                    .addComponent(jLabel_PList)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(regButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(unregButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1))
-                .addContainerGap(18, Short.MAX_VALUE))
-            .addComponent(statusPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(13, 13, 13)
+                        .addComponent(playerName)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel_PName)
-                    .addComponent(playerName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(10, 10, 10)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(regButton)
-                    .addComponent(readyButton)
-                    .addComponent(unregButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel_PList)
-                .addGap(1, 1, 1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(16, 16, 16)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel_PName)
+                            .addComponent(playerName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(10, 10, 10)
+                        .addComponent(regButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel_PList)
+                        .addGap(1, 1, 1))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(readyButton)
+                        .addGap(18, 18, 18)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -159,37 +146,55 @@ public class ClientGUI extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void regButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_regButtonActionPerformed
-        
-        if (playerName.getText().contains(" ")) {
-            Util.errorUser(this, "Player Name must not contain spaces");
+    private void ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonActionPerformed
+        if (evt.getActionCommand().toString().equals("register")) {
+            if (playerName.getText().contains(" ")) {
+                Util.errorUser(this, "Player Name must not contain spaces");
+            } else {
+                playerName.setEditable(false);
+                regButton.setEnabled(false);;
+
+                hosthandle.registerPlayer(this.playerName.getText());
+
+                regButton.setText("Unregister");
+                regButton.setActionCommand("unregister");
+                regButton.setEnabled(true);
+                readyButton.setEnabled(true);
+            }
+            regButton.setEnabled(rootPaneCheckingEnabled);
         }
-        else {
-            hosthandle.registerPlayer(this.playerName.getText());
-        }        
-        regButton.setEnabled(rootPaneCheckingEnabled);
-    }//GEN-LAST:event_regButtonActionPerformed
 
-    private void readyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readyButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_readyButtonActionPerformed
+        if (evt.getActionCommand().toString().equals("unregister")) {
+            regButton.setEnabled(false);
 
-    private void regButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_regButtonMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_regButtonMouseClicked
+            hosthandle.unregisterPlayer();
 
-    private void readyButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_readyButtonMouseClicked
-        // TODO add your handling code here:
-        
-        
-        
-        readyButton.setText("UnReg");
-    }//GEN-LAST:event_readyButtonMouseClicked
+            regButton.setText("Register");
+            regButton.setActionCommand("register");
+            regButton.setEnabled(true);
+            readyButton.setEnabled(false);
+        }
 
-    private void playerNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playerNameActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_playerNameActionPerformed
+        if (evt.getActionCommand().toString().equals("ready")) {
+            readyButton.setEnabled(false);
 
+            hosthandle.setReady(true);
+
+            readyButton.setText("No, wait!");
+            readyButton.setActionCommand("wait");
+            readyButton.setEnabled(true);
+        }
+
+        if (evt.getActionCommand().toString().equals("wait")) {
+            readyButton.setEnabled(false);
+
+            hosthandle.setReady(false);
+
+            readyButton.setText("Ready!");
+            readyButton.setActionCommand("ready");
+            readyButton.setEnabled(true);
+        }
+    }//GEN-LAST:event_ButtonActionPerformed
 //    /**
 //     * @param args the command line arguments
 //     */
@@ -241,17 +246,16 @@ public class ClientGUI extends javax.swing.JFrame {
     private javax.swing.JButton regButton;
     private javax.swing.JLabel statusLabel;
     private javax.swing.JPanel statusPanel;
-    private javax.swing.JButton unregButton;
     // End of variables declaration//GEN-END:variables
-    
+
     public void updatePlayerList(LinkedList<Player> pl) {
         DefaultListModel lm = new DefaultListModel();
-        for(Player p : pl) {
+        for (Player p : pl) {
             lm.addElement(p.toString());
         }
         this.playerList.setModel(lm);
     }
-    
+
     public void setStatusText(String text) {
         statusLabel.setText(text);
     }

@@ -31,6 +31,7 @@ public class ClientHost {
     private int server_port = 0;
     private Registry rmireg = null;
     private ClientGUI gui = null;
+    private IServer server = null;
 
     public static void main(String[] args) {
         new ClientHost();
@@ -93,11 +94,12 @@ public class ClientHost {
 
     }
 
-    public void registerPlayer(String name) {
+    public void registerPlayer(String p_name) {
 
         /*
          * Binding own services
          */
+        this.name = p_name;
         System.out.println(name + ": Binding own services...");
         try {
             IClient client = new ClientImpl(this);
@@ -121,12 +123,28 @@ public class ClientHost {
 
             String rmi_adr = new String("rmi://" + server_adr + ":" + server_port + "/Alcatraz/ServerImpl");
             System.out.println(name + ": Looking up:" + rmi_adr);
-            IServer server = (IServer) Naming.lookup(rmi_adr);
+            server = (IServer) Naming.lookup(rmi_adr);
 
 
             //InetAddress local_addr = InetAddress.getLocalHost();
             server.register(name, own_addr, client_port);
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void unregisterPlayer() {
+        try {
+            server.deregister(name);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setReady(boolean state) {
+        try {
+            server.setStatus(name, state);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -143,7 +161,7 @@ public class ClientHost {
         }
         if (ctr == pl.size()) {
             // los gehts mit alcazraz 
-            Util.warnUser(gui, "Game ready!");
+            System.out.println("Game ready!");
         }
     }
 }
