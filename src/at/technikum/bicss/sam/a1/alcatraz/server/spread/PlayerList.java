@@ -49,8 +49,7 @@ public class PlayerList implements Serializable, Iterable<Player>{
         player_list.add(p);
         System.out.print("player add");
         // fire changed event
-        triggeraddObjectChangedEvent();
-   
+        triggeraddObjectChangedEvent();   
     }
     
     public LinkedList<Player> getLinkedList(){

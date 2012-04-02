@@ -14,13 +14,15 @@ public class Player implements Serializable {
     private String name;
     private Integer id;
     private String address;
+    private int port;
     private boolean ready;
 
-    public Player(String name, Integer id, String address, boolean ready) {
+    public Player(String name, Integer id, String address, int port, boolean ready) {
         super();
         this.name = name;
         this.id = id;
         this.address = address;
+        this.port = port;
         this.ready = ready;
     }        
 
@@ -48,6 +50,14 @@ public class Player implements Serializable {
         this.name = name;
     }
 
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     public boolean isReady() {
         return ready;
     }
@@ -58,7 +68,7 @@ public class Player implements Serializable {
 
     @Override
     public String toString() {
-        return "Player{" + "name=" + name + ", id=" + id + ", address=" + address + ", ready=" + ready + '}';
+        return "Player{" + "name=" + name + ", id=" + id + ", address=" + address + ", port=" + port + ", ready=" + ready + '}';
     }
         
 }

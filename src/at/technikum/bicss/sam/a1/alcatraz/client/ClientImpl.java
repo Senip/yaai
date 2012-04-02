@@ -27,7 +27,7 @@ public class ClientImpl extends UnicastRemoteObject implements IClient {
     public void updatePlayerList(LinkedList<Player> pl) throws RemoteException {
         System.out.println("\nUpdate of Playerlist");
         System.out.println(pl.toString());
-        hosthandle.gui.updatePlayerList(pl);
+        hosthandle.processPlayerList(pl);
     }
 
     @Override

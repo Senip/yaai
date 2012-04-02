@@ -6,6 +6,7 @@ package at.technikum.bicss.sam.a1.alcatraz.client;
 
 import at.technikum.bicss.sam.a1.alcatraz.common.IClient;
 import at.technikum.bicss.sam.a1.alcatraz.common.IServer;
+import at.technikum.bicss.sam.a1.alcatraz.common.Player;
 import at.technikum.bicss.sam.a1.alcatraz.common.Util;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -15,27 +16,31 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.LinkedList;
 
 /**
  *
  * @auth8or Rudolf Galler <ic10b039@technikum-wien.at> [1010258039]
  */
 public class ClientHost {
-    
-    String server_adr = null;
-    String own_addr = null;
-    String name = null; //new String(args[1]);
-    int client_port = 0;
-    int server_port = 0;
-    Registry rmireg = null;
-    ClientGUI gui = null;
-    
+
+    private String server_adr = null;
+    private String own_addr = null;
+    private String name = null; //new String(args[1]);
+    private int client_port = 0;
+    private int server_port = 0;
+    private Registry rmireg = null;
+    private ClientGUI gui = null;
+
     public static void main(String[] args) {
         new ClientHost();
     }
-    
+
     public ClientHost() {
         Util.readProps();
+        gui = new ClientGUI(this);
+        gui.setVisible(true);
+
         client_port = Util.getClientRMIPort();
         server_port = Util.getServerRMIPort();
 
@@ -50,7 +55,7 @@ public class ClientHost {
                 /*
                  * remember own address with which the server was reached
                  */
-                own_addr = sock.getLocalAddress().getHostAddress();                
+                own_addr = sock.getLocalAddress().getHostAddress();
                 sock.getLocalAddress().isReachable(server_port);
                 break;
             } catch (Exception e) {
@@ -68,7 +73,7 @@ public class ClientHost {
         /*
          * Register own Client-Services
          */
-        
+
         System.out.println(name + ": Set up own registry...");
         try {
             rmireg = LocateRegistry.createRegistry(client_port);
@@ -84,31 +89,29 @@ public class ClientHost {
             e.printStackTrace();
         }
 
-        gui = new ClientGUI(this);
-        gui.setVisible(true);
+        System.out.println(name + ": Alcatraz Client running.");
+
     }
-    
-    public void bindPlayer(String name) {
-  
+
+    public void registerPlayer(String name) {
+
+        /*
+         * Binding own services
+         */
         System.out.println(name + ": Binding own services...");
         try {
             IClient client = new ClientImpl(this);
             //rmireg.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/ + name", server);
-            Naming.rebind("rmi://localhost:1099/Alcatraz/ClientImpl/" + name, client);
+            Naming.rebind("rmi://localhost:" + client_port + "/Alcatraz/ClientImpl/" + name, client);
             Util.printRMIReg(rmireg);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-
-        System.out.println(name + ": Alcatraz Client running.");
-        
-
         /*
          * Register Player at Server
          */
         try {
-
 //            System.out.println("Locating RMI-Registry of Server");
 //            Registry rmireg = LocateRegistry.getRegistry(server_adr, port);
 //            Util.printRMIReg(rmireg);
@@ -122,10 +125,25 @@ public class ClientHost {
 
 
             //InetAddress local_addr = InetAddress.getLocalHost();
-            server.register(name, own_addr);
+            server.register(name, own_addr, client_port);
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void processPlayerList(LinkedList<Player> pl) {
+        gui.updatePlayerList(pl);
+
+        int ctr = 0;
+        for (Player p : pl) {
+            if (p.isReady()) {
+                ctr++;
+            }
+        }
+        if (ctr == pl.size()) {
+            // los gehts mit alcazraz 
+            Util.warnUser(gui, "Game ready!");
         }
     }
 }

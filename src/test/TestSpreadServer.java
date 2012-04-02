@@ -18,7 +18,7 @@ public class TestSpreadServer {
             SpreadServer spread_server = SpreadServer.getInstance();
             PlayerList player_list = spread_server.getPlayerList();
             
-            player_list.add(new Player("gabriel", 1, "192.168.1.106", true));
+            player_list.add(new Player("gabriel", 1, "192.168.1.106", 1099, true));
             
             
         

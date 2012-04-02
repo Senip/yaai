@@ -33,23 +33,29 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     private void broadcastPlayerList() {
         String rmi_adr = null;
         for (Player p : PlayerList) {
-            rmi_adr = new String("rmi://" + p.getAddress() + ":" + 1099 + "/Alcatraz/ClientImpl/" + p.getName());
+            rmi_adr = new String("rmi://" + p.getAddress() + ":" + p.getPort() + "/Alcatraz/ClientImpl/" + p.getName());
             try {
-                IClient c  = (IClient) Naming.lookup(rmi_adr);
+                IClient c = (IClient) Naming.lookup(rmi_adr);
                 c.updatePlayerList(PlayerList.getLinkedList());
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
-            }            
+            }
         }
     }
 
     @Override
-    public void register(String name, String address) throws RemoteException {
-        Player newPlayer = new Player(name, 0, address, false);
+    public void register(String name, String address, int port) throws RemoteException {
+        Player newPlayer = new Player(name, 0, address, port, false);
         PlayerList.add(newPlayer);
         System.out.println("\nSERVER: Registered new Player:\n" + newPlayer.toString());
         broadcastPlayerList();
+    }
+
+    public void deregister(String name) throws RemoteException {
+    }
+
+    public void setStatus(String name, boolean ready) throws RemoteException {
+                
     }
 
     @Override
