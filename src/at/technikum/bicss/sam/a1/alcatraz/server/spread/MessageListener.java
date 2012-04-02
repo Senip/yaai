@@ -38,28 +38,28 @@ public class MessageListener implements AdvancedMessageListener {
         try {
             AlcatrazMessage obj = (AlcatrazMessage) message.getObject();
 
-            Util.printDebugMessage("SPREAD", "got message: " + obj.getHeader());
+            Util.handleDebugMessage("SPREAD", "got message: " + obj.getHeader());
 
             if (!spread_server.isMasterServer()) {
                 // update Master Server
                 if (obj.getHeader() == MessageHeader.MASTER_SERVER) {
 
-                    Util.printDebugMessage("SPREAD", "Master Server has changed: "
+                    Util.handleDebugMessage("SPREAD", "Master Server has changed: "
                             + obj.getBody());
                     spread_server.setMasterServer((String) obj.getBody());
 
                 } else if (obj.getHeader() == MessageHeader.PLAYER_LIST) {
 
-                    Util.printDebugMessage("SPREAD", "PlayerList update: "
+                    Util.handleDebugMessage("SPREAD", "PlayerList update: "
                             + obj.getBody());
 
                     spread_server.setPlayerList((LinkedList<Player>) obj.getBody());
                 } else if (obj.getHeader() == MessageHeader.SERVER_LIST) {
-                    Util.printDebugMessage("SPREAD", "ServerList update: "
+                    Util.handleDebugMessage("SPREAD", "ServerList update: "
                             + obj.getBody() + "\n");
                     spread_server.updateMemberServer((LinkedList) obj.getBody());
                 } else if (obj.getHeader() == MessageHeader.MASTER_SERVER_ADDRESS) {
-                    Util.printDebugMessage("SPREAD", "Master server address update: "
+                    Util.handleDebugMessage("SPREAD", "Master server address update: "
                             + obj.getBody() + "\n");
                     spread_server.setMasterServerAddress((String) obj.getBody());
                 }
@@ -73,16 +73,16 @@ public class MessageListener implements AdvancedMessageListener {
     public void membershipMessageReceived(SpreadMessage message) {
         MembershipInfo msi = message.getMembershipInfo();
 
-        Util.printDebugMessage("SPREAD", "Membership Message recieved");
-        Util.printDebugMessage("SPREAD", "Members: " + msi.getMembers());
-        Util.printDebugMessage("SPREAD", "Group Members: "
+        Util.handleDebugMessage("SPREAD", "Membership Message recieved");
+        Util.handleDebugMessage("SPREAD", "Members: " + msi.getMembers());
+        Util.handleDebugMessage("SPREAD", "Group Members: "
                 + msi.getMembers().length);
-        Util.printDebugMessage("SPREAD", "Group ID: " + msi.getGroupID());
+        Util.handleDebugMessage("SPREAD", "Group ID: " + msi.getGroupID());
         // there is a join
         if (msi.isCausedByJoin()) {
 
-            Util.printDebugMessage("SPREAD", "Was caused by: JOIN");
-            Util.printDebugMessage("SPREAD", "Joined Member: " + msi.getJoined());
+            Util.handleDebugMessage("SPREAD", "Was caused by: JOIN");
+            Util.handleDebugMessage("SPREAD", "Joined Member: " + msi.getJoined());
 
             System.out.print("\n");
 
@@ -93,7 +93,7 @@ public class MessageListener implements AdvancedMessageListener {
                 spread_server.setMasterServer(spread_server.getPrivateGroup().toString());
 
 
-                Util.printDebugMessage("SPREAD", "This node is the Master Server: "
+                Util.handleDebugMessage("SPREAD", "This node is the Master Server: "
                         + spread_server.getPrivateGroup().toString());
 
             } else if (spread_server.isMasterServer()) {
@@ -107,8 +107,8 @@ public class MessageListener implements AdvancedMessageListener {
 
         // someone leaves
         if (msi.isCausedByLeave()) {
-            Util.printDebugMessage("SPREAD", "Was caused by: LEAVE");
-            Util.printDebugMessage("SPREAD", "Left Member: " + msi.getLeft());
+            Util.handleDebugMessage("SPREAD", "Was caused by: LEAVE");
+            Util.handleDebugMessage("SPREAD", "Left Member: " + msi.getLeft());
 
             spread_server.removeServer(msi.getLeft().toString());
 
@@ -117,8 +117,8 @@ public class MessageListener implements AdvancedMessageListener {
 
         // disconnect
         if (msi.isCausedByDisconnect()) {
-            Util.printDebugMessage("SPREAD", "Was caused by: DISCONNECT");
-            Util.printDebugMessage("SPREAD", "Disconnected Member"
+            Util.handleDebugMessage("SPREAD", "Was caused by: DISCONNECT");
+            Util.handleDebugMessage("SPREAD", "Disconnected Member"
                     + msi.getDisconnected());
             spread_server.removeServer(msi.getDisconnected().toString());
 
@@ -129,7 +129,7 @@ public class MessageListener implements AdvancedMessageListener {
         // network error
         if (msi.isCausedByNetwork()) {
 
-            Util.printDebugMessage("SPREAD", "Was caused by: NETWORK ERROR");
+            Util.handleDebugMessage("SPREAD", "Was caused by: NETWORK ERROR");
         }
     }
 }

@@ -87,10 +87,9 @@ public final class Util {
         }
     }
 
-    public static void printDebugMessage(String prefix, String message) {
-        System.out.print(prefix + ": " + message + "\n");
+    public static void handleDebugMessage(String prefix, String message){
+        System.out.print(prefix + ": " + message + "\n");       
     }
-
     /**
      * Checks whether a string is empty an returns {@code true} if it is,
      * otherwise {@code false}

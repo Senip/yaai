@@ -44,10 +44,16 @@ public class PlayerList implements Serializable, Iterable<Player>{
         return player_list.iterator();
     }
 
-    // wrapper for add linkedlist add method
+    // wrapper for add on linkedlist
     public void add(Player p){
         player_list.add(p);
-        System.out.print("player add");
+        // fire changed event
+        triggeraddObjectChangedEvent();
+    }
+    
+    // wrapper for remove on linkedlist
+    public void remove(Player p){
+        player_list.remove(p);
         // fire changed event
         triggeraddObjectChangedEvent();   
     }

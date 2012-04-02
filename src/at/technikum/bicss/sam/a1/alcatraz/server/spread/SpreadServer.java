@@ -67,7 +67,7 @@ public class SpreadServer implements ObjectChangedListner {
             connection.connect(InetAddress.getByName(server_address), 0,
                     "alcatraz", false, true);
             connection.add(listener);
-            Util.printDebugMessage("SPREAD", "Setup listener");
+            Util.handleDebugMessage("SPREAD", "Setup listener");
             SpreadGroup group = new SpreadGroup();
             group.join(connection, spread_group_name);
 
@@ -101,7 +101,7 @@ public class SpreadServer implements ObjectChangedListner {
             this.i_am_master_server = true;
             this.group_master_server_address = Util.getMyServerAddress();
 
-            Util.printDebugMessage("SPREAD", "Master Server Host Address: "
+            Util.handleDebugMessage("SPREAD", "Master Server Host Address: "
                     + this.group_master_server_address);
 
         }
@@ -122,7 +122,7 @@ public class SpreadServer implements ObjectChangedListner {
 
     void removeServer(String server) {
         // remove server from list caused by spread leave or disconnect
-        Util.printDebugMessage("SPREAD",
+        Util.handleDebugMessage("SPREAD",
                 "remove server node from list (" + server + ")");
         server_list.remove(server);
         // the master has gone
@@ -132,7 +132,7 @@ public class SpreadServer implements ObjectChangedListner {
             if (getPrivateGroup().toString().equalsIgnoreCase(
                     (String) server_list.getFirst())) {
 
-                Util.printDebugMessage("SPREAD", "This server node is new MASTER");
+                Util.handleDebugMessage("SPREAD", "This server node is new MASTER");
                 // new master updates other server nodes
                 setMasterServer(getPrivateGroup().toString());
 
@@ -157,7 +157,7 @@ public class SpreadServer implements ObjectChangedListner {
             msg.setFifo();
             connection.multicast(msg);
 
-            Util.printDebugMessage("SPREAD", "multicast message: "
+            Util.handleDebugMessage("SPREAD", "multicast message: "
                     + a_msg.getHeader() + "\n" + a_msg.getBody());
 
         } catch (SpreadException ex) {
@@ -199,9 +199,9 @@ public class SpreadServer implements ObjectChangedListner {
 
     @Override
     public void updateObject(ObjectChangedEvent event) {
-        // the plater_list was change
-        // spread modified plater_list to other server nodes
-        Util.printDebugMessage("SPREAD", "PlayerList was changed.");
+        // the player_list was change
+        // spread modified player_list to other server nodes
+        Util.handleDebugMessage("SPREAD", "PlayerList was changed.");
         this.multicastPlayerList();
 
     }

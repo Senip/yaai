@@ -19,24 +19,24 @@ import java.rmi.server.UnicastRemoteObject;
  */
 public class ServerImpl extends UnicastRemoteObject implements IServer {
 
-    private PlayerList PlayerList;
+    private PlayerList player_list;
     private SpreadServer spread_server;
 
     public ServerImpl() throws RemoteException {
         super();
-        // get playerlist with already instanced spread server
+        // create initial spread server instance
         spread_server = SpreadServer.getInstance();
-        PlayerList = spread_server.getPlayerList();
+        player_list = spread_server.getPlayerList();
 
     }
 
     private void broadcastPlayerList() {
         String rmi_adr = null;
-        for (Player p : PlayerList) {
+        for (Player p : player_list) {
             rmi_adr = new String("rmi://" + p.getAddress() + ":" + p.getPort() + "/Alcatraz/ClientImpl/" + p.getName());
             try {
                 IClient c = (IClient) Naming.lookup(rmi_adr);
-                c.updatePlayerList(PlayerList.getLinkedList());
+                c.updatePlayerList(player_list.getLinkedList());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -46,7 +46,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     @Override
     public void register(String name, String address, int port) throws RemoteException {
         Player newPlayer = new Player(name, 0, address, port, false);
-        PlayerList.add(newPlayer);
+        player_list.add(newPlayer);
         System.out.println("\nSERVER: Registered new Player:\n" + newPlayer.toString());
         broadcastPlayerList();
     }

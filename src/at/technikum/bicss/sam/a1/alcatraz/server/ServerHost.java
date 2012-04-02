@@ -23,16 +23,7 @@ public class ServerHost {
         Util.readProps();
         int port = Util.getServerRMIPort();
         System.setProperty("java.rmi.server.hostname", "10.0.0.3");
-        long maxMemory = Runtime.getRuntime().maxMemory();
-        System.out.print(maxMemory);
-        /*
-         * Spread instance:
-         * 
-         */
-        //SpreadServer spread_server = SpreadServer.getInstance();
 
-        // vice versa to update player_list on spread nodes
-        
         /*
          * 
          * Register Server-Services
