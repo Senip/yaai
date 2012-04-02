@@ -26,15 +26,15 @@ public class ServerHost {
         long maxMemory = Runtime.getRuntime().maxMemory();
         System.out.print(maxMemory);
         /*
-         * Spread instances: PlayerList => spread GroupMessage on add and remove
+         * Spread instance:
          * 
          */
-        SpreadServer spread_server = SpreadServer.getInstance();
-        PlayerList player_list = new PlayerList();
-        player_list.addObjectChangedListner(spread_server);
-        // vice versa to update player_list on spread nodes 
-        spread_server.updatePlayerListOnSpreadUpdate(player_list);
+        //SpreadServer spread_server = SpreadServer.getInstance();
+
+        // vice versa to update player_list on spread nodes
+        
         /*
+         * 
          * Register Server-Services
          */
         Registry rmireg = null;
@@ -55,7 +55,7 @@ public class ServerHost {
 
         System.out.println("SERVER: Bind...");
         try {
-            IServer server = new ServerImpl(player_list);
+            IServer server = new ServerImpl();
             //rmireg.rebind("rmi://localhost:1099/Alcatraz/ServerImpl", server);
             Naming.rebind("rmi://localhost:1099/Alcatraz/ServerImpl", server);
             Util.printRMIReg(rmireg);

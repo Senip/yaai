@@ -8,6 +8,7 @@ import at.technikum.bicss.sam.a1.alcatraz.common.IClient;
 import at.technikum.bicss.sam.a1.alcatraz.common.IServer;
 import at.technikum.bicss.sam.a1.alcatraz.common.Player;
 import at.technikum.bicss.sam.a1.alcatraz.server.spread.PlayerList;
+import at.technikum.bicss.sam.a1.alcatraz.server.spread.SpreadServer;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -19,11 +20,14 @@ import java.rmi.server.UnicastRemoteObject;
 public class ServerImpl extends UnicastRemoteObject implements IServer {
 
     private PlayerList PlayerList;
+    private SpreadServer spread_server;
 
-    public ServerImpl(PlayerList pl) throws RemoteException {
+    public ServerImpl() throws RemoteException {
         super();
         // get playerlist with already instanced spread server
-        PlayerList = pl;
+        spread_server = SpreadServer.getInstance();
+        PlayerList = spread_server.getPlayerList();
+
     }
 
     private void broadcastPlayerList() {
@@ -46,5 +50,10 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
         PlayerList.add(newPlayer);
         System.out.println("\nSERVER: Registered new Player:\n" + newPlayer.toString());
         broadcastPlayerList();
+    }
+
+    @Override
+    public String getMasterServer() throws RemoteException {
+        return spread_server.getMasterServerAddress();
     }
 }

@@ -14,4 +14,5 @@ import java.rmi.RemoteException;
 public interface IServer extends Remote {
 
     public void register(String name, String address) throws RemoteException;
+    public String getMasterServer() throws RemoteException;
 }

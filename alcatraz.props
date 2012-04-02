@@ -4,4 +4,5 @@ server_address=10.0.0.120,10.0.0.2,10.0.0.3,192.168.1.109,192.168.1.110
 server_registry_port=1099
 client_registry_port=1098
 group_name=alcatraz
+my_server_host_address=192.168.1.100
 

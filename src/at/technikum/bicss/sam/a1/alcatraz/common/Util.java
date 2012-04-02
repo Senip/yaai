@@ -13,6 +13,7 @@ public final class Util {
     static final public String SERVER_RMIREG_PORT = "server_registry_port";
     static final public String CLIENT_RMIREG_PORT = "client_registry_port";
     static final public String GROUP_NAME = "group_name";
+    static final public String MY_SERVER_ADDRESS = "my_server_host_address";
     private static Properties props = null;
 
     //prohibit instances of class Util
@@ -48,7 +49,10 @@ public final class Util {
     public static String getGroupName() {
         return props.getProperty(GROUP_NAME);
     }
-        
+    // master server ip
+    public static String getMyServerAddress() {
+        return props.getProperty(MY_SERVER_ADDRESS);
+    }
     public static Properties getProps() {
         FileInputStream fileIn = null;
         Properties props = new Properties();
@@ -70,6 +74,9 @@ public final class Util {
         }
     }
 
+    public static void printDebugMessage(String prefix, String message){
+        System.out.print(prefix + ": " + message + "\n");       
+    }
     /**
      * Checks whether a string is empty an returns {@code true} if it is,
      * otherwise {@code false}
