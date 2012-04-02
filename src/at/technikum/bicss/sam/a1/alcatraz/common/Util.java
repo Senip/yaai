@@ -74,7 +74,7 @@ public final class Util {
         }
     }
 
-    public static void printDebugMessage(String prefix, String message){
+    public static void handleDebugMessage(String prefix, String message){
         System.out.print(prefix + ": " + message + "\n");       
     }
     /**
