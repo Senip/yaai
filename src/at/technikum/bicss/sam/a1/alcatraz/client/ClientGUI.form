@@ -22,24 +22,24 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="statusPanel" alignment="0" max="32767" attributes="0"/>
+          <Component id="jPnl_Status" alignment="0" max="32767" attributes="0"/>
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="regButton" min="-2" pref="150" max="-2" attributes="0"/>
+                      <Component id="jBtn_Register" min="-2" pref="150" max="-2" attributes="0"/>
                       <EmptySpace pref="194" max="32767" attributes="0"/>
-                      <Component id="readyButton" min="-2" pref="150" max="-2" attributes="0"/>
+                      <Component id="jBtn_Ready" min="-2" pref="150" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="jScrlPne" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel_PList" min="-2" max="-2" attributes="0"/>
+                      <Component id="jLbl_PList" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
-                      <Component id="jLabel_PName" min="-2" max="-2" attributes="0"/>
+                      <Component id="jLbl_PName" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="13" max="-2" attributes="0"/>
-                      <Component id="playerName" max="32767" attributes="0"/>
+                      <Component id="jTxtFld_PName" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -53,37 +53,37 @@
                   <Group type="102" attributes="0">
                       <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="jLabel_PName" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="playerName" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLbl_PName" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jTxtFld_PName" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
-                      <Component id="regButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="jBtn_Register" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jLabel_PList" min="-2" max="-2" attributes="0"/>
+                      <Component id="jLbl_PList" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="readyButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="jBtn_Ready" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <Component id="jScrollPane1" pref="194" max="32767" attributes="0"/>
+              <Component id="jScrlPne" pref="194" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="statusPanel" min="-2" max="-2" attributes="0"/>
+              <Component id="jPnl_Status" min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="javax.swing.JTextField" name="playerName">
+    <Component class="javax.swing.JTextField" name="jTxtFld_PName">
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel_PName">
+    <Component class="javax.swing.JLabel" name="jLbl_PName">
       <Properties>
         <Property name="text" type="java.lang.String" value="Playername:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="regButton">
+    <Component class="javax.swing.JButton" name="jBtn_Register">
       <Properties>
         <Property name="text" type="java.lang.String" value="Register"/>
         <Property name="actionCommand" type="java.lang.String" value="register"/>
@@ -92,14 +92,14 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ButtonActionPerformed"/>
       </Events>
     </Component>
-    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
+    <Container class="javax.swing.JScrollPane" name="jScrlPne">
       <AuxValues>
         <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
       </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JList" name="playerList">
+        <Component class="javax.swing.JList" name="jLst_PlayerList">
           <Properties>
             <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
               <StringArray count="0"/>
@@ -108,12 +108,12 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JLabel" name="jLabel_PList">
+    <Component class="javax.swing.JLabel" name="jLbl_PList">
       <Properties>
         <Property name="text" type="java.lang.String" value="Playerlist"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="readyButton">
+    <Component class="javax.swing.JButton" name="jBtn_Ready">
       <Properties>
         <Property name="text" type="java.lang.String" value="Ready!"/>
         <Property name="actionCommand" type="java.lang.String" value="ready"/>
@@ -123,7 +123,7 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ButtonActionPerformed"/>
       </Events>
     </Component>
-    <Container class="javax.swing.JPanel" name="statusPanel">
+    <Container class="javax.swing.JPanel" name="jPnl_Status">
       <Properties>
         <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
           <Color id="Standardcursor"/>
@@ -136,7 +136,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
-                  <Component id="statusLabel" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLbl_StatusTxt" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
@@ -145,14 +145,14 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="1" attributes="0">
                   <EmptySpace max="32767" attributes="0"/>
-                  <Component id="statusLabel" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLbl_StatusTxt" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="statusLabel">
+        <Component class="javax.swing.JLabel" name="jLbl_StatusTxt">
           <Properties>
             <Property name="text" type="java.lang.String" value="Statusbar"/>
           </Properties>

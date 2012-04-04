@@ -137,6 +137,7 @@ public class ClientHost {
     public void unregisterPlayer() {
         try {
             server.deregister(name);
+            gui.updatePlayerList(null);            
         } catch (Exception e) {
             e.printStackTrace();
         }

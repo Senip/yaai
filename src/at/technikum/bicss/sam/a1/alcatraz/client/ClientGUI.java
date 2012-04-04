@@ -41,60 +41,60 @@ public class ClientGUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        playerName = new javax.swing.JTextField();
-        jLabel_PName = new javax.swing.JLabel();
-        regButton = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        playerList = new javax.swing.JList();
-        jLabel_PList = new javax.swing.JLabel();
-        readyButton = new javax.swing.JButton();
-        statusPanel = new javax.swing.JPanel();
-        statusLabel = new javax.swing.JLabel();
+        jTxtFld_PName = new javax.swing.JTextField();
+        jLbl_PName = new javax.swing.JLabel();
+        jBtn_Register = new javax.swing.JButton();
+        jScrlPne = new javax.swing.JScrollPane();
+        jLst_PlayerList = new javax.swing.JList();
+        jLbl_PList = new javax.swing.JLabel();
+        jBtn_Ready = new javax.swing.JButton();
+        jPnl_Status = new javax.swing.JPanel();
+        jLbl_StatusTxt = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel_PName.setText("Playername:");
+        jLbl_PName.setText("Playername:");
 
-        regButton.setText("Register");
-        regButton.setActionCommand("register");
-        regButton.addActionListener(new java.awt.event.ActionListener() {
+        jBtn_Register.setText("Register");
+        jBtn_Register.setActionCommand("register");
+        jBtn_Register.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ButtonActionPerformed(evt);
             }
         });
 
-        jScrollPane1.setViewportView(playerList);
+        jScrlPne.setViewportView(jLst_PlayerList);
 
-        jLabel_PList.setText("Playerlist");
+        jLbl_PList.setText("Playerlist");
 
-        readyButton.setText("Ready!");
-        readyButton.setActionCommand("ready");
-        readyButton.setEnabled(false);
-        readyButton.addActionListener(new java.awt.event.ActionListener() {
+        jBtn_Ready.setText("Ready!");
+        jBtn_Ready.setActionCommand("ready");
+        jBtn_Ready.setEnabled(false);
+        jBtn_Ready.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ButtonActionPerformed(evt);
             }
         });
 
-        statusPanel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        statusPanel.setOpaque(false);
+        jPnl_Status.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jPnl_Status.setOpaque(false);
 
-        statusLabel.setText("Statusbar");
+        jLbl_StatusTxt.setText("Statusbar");
 
-        javax.swing.GroupLayout statusPanelLayout = new javax.swing.GroupLayout(statusPanel);
-        statusPanel.setLayout(statusPanelLayout);
-        statusPanelLayout.setHorizontalGroup(
-            statusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(statusPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout jPnl_StatusLayout = new javax.swing.GroupLayout(jPnl_Status);
+        jPnl_Status.setLayout(jPnl_StatusLayout);
+        jPnl_StatusLayout.setHorizontalGroup(
+            jPnl_StatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPnl_StatusLayout.createSequentialGroup()
                 .addGap(4, 4, 4)
-                .addComponent(statusLabel)
+                .addComponent(jLbl_StatusTxt)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        statusPanelLayout.setVerticalGroup(
-            statusPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, statusPanelLayout.createSequentialGroup()
+        jPnl_StatusLayout.setVerticalGroup(
+            jPnl_StatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPnl_StatusLayout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(statusLabel)
+                .addComponent(jLbl_StatusTxt)
                 .addGap(7, 7, 7))
         );
 
@@ -102,22 +102,22 @@ public class ClientGUI extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(statusPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPnl_Status, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(regButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jBtn_Register, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 194, Short.MAX_VALUE)
-                        .addComponent(readyButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1)
+                        .addComponent(jBtn_Ready, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrlPne)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel_PList)
+                        .addComponent(jLbl_PList)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel_PName)
+                        .addComponent(jLbl_PName)
                         .addGap(13, 13, 13)
-                        .addComponent(playerName)))
+                        .addComponent(jTxtFld_PName)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -127,20 +127,20 @@ public class ClientGUI extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(16, 16, 16)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel_PName)
-                            .addComponent(playerName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLbl_PName)
+                            .addComponent(jTxtFld_PName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(10, 10, 10)
-                        .addComponent(regButton)
+                        .addComponent(jBtn_Register)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel_PList)
+                        .addComponent(jLbl_PList)
                         .addGap(1, 1, 1))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(readyButton)
+                        .addComponent(jBtn_Ready)
                         .addGap(18, 18, 18)))
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
+                .addComponent(jScrlPne, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(statusPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jPnl_Status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -148,51 +148,52 @@ public class ClientGUI extends javax.swing.JFrame {
 
     private void ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonActionPerformed
         if (evt.getActionCommand().toString().equals("register")) {
-            if (playerName.getText().contains(" ")) {
+            if (jTxtFld_PName.getText().contains(" ")) {
                 Util.errorUser(this, "Player Name must not contain spaces");
             } else {
-                playerName.setEditable(false);
-                regButton.setEnabled(false);;
+                jTxtFld_PName.setEditable(false);
+                jBtn_Register.setEnabled(false);;
 
-                hosthandle.registerPlayer(this.playerName.getText());
+                hosthandle.registerPlayer(this.jTxtFld_PName.getText());
 
-                regButton.setText("Unregister");
-                regButton.setActionCommand("unregister");
-                regButton.setEnabled(true);
-                readyButton.setEnabled(true);
+                jBtn_Register.setText("Unregister");
+                jBtn_Register.setActionCommand("unregister");
+                jBtn_Register.setEnabled(true);
+                jBtn_Ready.setEnabled(true);
             }
-            regButton.setEnabled(rootPaneCheckingEnabled);
+            jBtn_Register.setEnabled(rootPaneCheckingEnabled);
         }
 
         if (evt.getActionCommand().toString().equals("unregister")) {
-            regButton.setEnabled(false);
+            jBtn_Register.setEnabled(false);
 
             hosthandle.unregisterPlayer();
 
-            regButton.setText("Register");
-            regButton.setActionCommand("register");
-            regButton.setEnabled(true);
-            readyButton.setEnabled(false);
+            jBtn_Register.setText("Register");
+            jBtn_Register.setActionCommand("register");
+            jBtn_Register.setEnabled(true);
+            jBtn_Ready.setEnabled(false);
+            jTxtFld_PName.setEditable(true);
         }
 
         if (evt.getActionCommand().toString().equals("ready")) {
-            readyButton.setEnabled(false);
+            jBtn_Ready.setEnabled(false);
 
             hosthandle.setReady(true);
 
-            readyButton.setText("No, wait!");
-            readyButton.setActionCommand("wait");
-            readyButton.setEnabled(true);
+            jBtn_Ready.setText("No, wait!");
+            jBtn_Ready.setActionCommand("wait");
+            jBtn_Ready.setEnabled(true);
         }
 
         if (evt.getActionCommand().toString().equals("wait")) {
-            readyButton.setEnabled(false);
+            jBtn_Ready.setEnabled(false);
 
             hosthandle.setReady(false);
 
-            readyButton.setText("Ready!");
-            readyButton.setActionCommand("ready");
-            readyButton.setEnabled(true);
+            jBtn_Ready.setText("Ready!");
+            jBtn_Ready.setActionCommand("ready");
+            jBtn_Ready.setEnabled(true);
         }
     }//GEN-LAST:event_ButtonActionPerformed
 //    /**
@@ -237,26 +238,28 @@ public class ClientGUI extends javax.swing.JFrame {
 //        });
 //    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel_PList;
-    private javax.swing.JLabel jLabel_PName;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList playerList;
-    private javax.swing.JTextField playerName;
-    private javax.swing.JButton readyButton;
-    private javax.swing.JButton regButton;
-    private javax.swing.JLabel statusLabel;
-    private javax.swing.JPanel statusPanel;
+    private javax.swing.JButton jBtn_Ready;
+    private javax.swing.JButton jBtn_Register;
+    private javax.swing.JLabel jLbl_PList;
+    private javax.swing.JLabel jLbl_PName;
+    private javax.swing.JLabel jLbl_StatusTxt;
+    private javax.swing.JList jLst_PlayerList;
+    private javax.swing.JPanel jPnl_Status;
+    private javax.swing.JScrollPane jScrlPne;
+    private javax.swing.JTextField jTxtFld_PName;
     // End of variables declaration//GEN-END:variables
 
     public void updatePlayerList(LinkedList<Player> pl) {
         DefaultListModel lm = new DefaultListModel();
-        for (Player p : pl) {
-            lm.addElement(p.toString());
-        }
-        this.playerList.setModel(lm);
+        if (pl != null) {
+            for (Player p : pl) {
+                lm.addElement(p.toString());
+            }
+    }
+        this.jLst_PlayerList.setModel(lm);
     }
 
     public void setStatusText(String text) {
-        statusLabel.setText(text);
+        jLbl_StatusTxt.setText(text);
     }
 }
