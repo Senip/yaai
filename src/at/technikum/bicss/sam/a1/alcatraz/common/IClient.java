@@ -4,7 +4,6 @@
  */
 package at.technikum.bicss.sam.a1.alcatraz.common;
 
-import at.falb.games.alcatraz.impl.Move;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.LinkedList;
@@ -15,6 +14,6 @@ import java.util.LinkedList;
  */
 public interface IClient extends Remote{
     public void updatePlayerList(LinkedList<Player> pl) throws RemoteException;
-    public void sendMove (String name, Move m) throws RemoteException;
+    public void doMove (String name, Move m) throws RemoteException;
     
 }

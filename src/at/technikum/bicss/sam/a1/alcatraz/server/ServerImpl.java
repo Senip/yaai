@@ -32,6 +32,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
 
     private void broadcastPlayerList() {
         String rmi_adr = null;
+        renumberIDs(player_list);
         for (Player p : player_list) {
             rmi_adr = new String("rmi://" + p.getAddress() + ":" + p.getPort() + "/Alcatraz/ClientImpl/" + p.getName());
             try {
@@ -43,18 +44,26 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
         }
     }
 
+    private void renumberIDs(PlayerList pl) {
+        //renumber IDs if there was a change in playerlist
+        for (Player p : player_list) {
+            p.setId(player_list.getLinkedList().indexOf(p));
+        }
+    }
+
     @Override
     public void register(String name, String address, int port) throws RemoteException {
         Player newPlayer = new Player(name, 0, address, port, false);
         player_list.add(newPlayer);
+
         System.out.println("\nSERVER: Registered new Player:\n" + newPlayer.toString());
         broadcastPlayerList();
     }
 
-    public void deregister(String name) throws RemoteException {        
+    public void deregister(String name) throws RemoteException {
         Player p_remove = null;
-        for(Player p : player_list){
-            if(p.getName().equals(name)) {
+        for (Player p : player_list) {
+            if (p.getName().equals(name)) {
                 p_remove = p;
             }
         }
@@ -63,8 +72,8 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     }
 
     public void setStatus(String name, boolean ready) throws RemoteException {
-        for(Player p : player_list){
-            if(p.getName().equals(name)) {
+        for (Player p : player_list) {
+            if (p.getName().equals(name)) {
                 p.setReady(ready);
             }
         }

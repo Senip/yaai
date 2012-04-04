@@ -4,8 +4,8 @@
  */
 package at.technikum.bicss.sam.a1.alcatraz.client;
 
-import at.falb.games.alcatraz.impl.Move;
 import at.technikum.bicss.sam.a1.alcatraz.common.IClient;
+import at.technikum.bicss.sam.a1.alcatraz.common.Move;
 import at.technikum.bicss.sam.a1.alcatraz.common.Player;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -31,6 +31,7 @@ public class ClientImpl extends UnicastRemoteObject implements IClient {
     }
 
     @Override
-    public void sendMove(String name, Move m) throws RemoteException {
+    public void doMove(String name, Move m) throws RemoteException {
+        System.out.println("\nreceived Move");
     }
 }
