@@ -7,17 +7,26 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.util.Properties;
 import java.util.logging.*;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 public final class Util {
 
     static final private String PROP_FILE = "alcatraz.props";
-    static final public String SERVER_ADDRESS = "server_address";
-    static final public String SERVER_RMIREG_PORT = "server_registry_port";
-    static final public String CLIENT_RMIREG_PORT = "client_registry_port";
-    static final public String GROUP_NAME = "group_name";
+    /**
+     * Client Properties
+     */
+    static final public String SERVER_ADDRESS_LIST = "server_address_list";
+    static final public String CLIENT_RMIREG_PORT = "client_rmireg_port";
+    static final public String CLIENT_RMIREG_PATH = "client_rmireg_path";
+    /**
+     * Server Properties
+     */
     static final public String MY_SERVER_ADDRESS = "my_server_host_address";
+    static final public String SERVER_RMIREG_PORT = "server_rmireg_port";
+    static final public String SERVER_RMIREG_PATH = "server_rmireg_path";
+    static final public String GROUP_NAME = "spread_group_name";
     private static Properties props = null;
     /**
      * Name of property-file for event logger
@@ -44,26 +53,49 @@ public final class Util {
         }
     }
 
-    public static String[] getServerAddress() {
-        return props.getProperty(SERVER_ADDRESS).split(",");
-    }
-
-    public static int getServerRMIPort() {
-        return Integer.valueOf(props.getProperty(SERVER_RMIREG_PORT));
+    public static String[] getServerAddressList() {
+        return props.getProperty(SERVER_ADDRESS_LIST).split(",");
     }
 
     public static int getClientRMIPort() {
         return Integer.valueOf(props.getProperty(CLIENT_RMIREG_PORT));
     }
 
+    public static String getClientRMIPath() {
+        return props.getProperty(CLIENT_RMIREG_PATH);
+    }
+
+    // master server ip
+    public static String getMyServerAddress() {
+        return props.getProperty(MY_SERVER_ADDRESS);
+    }
+
+    public static int getServerRMIPort() {
+        return Integer.valueOf(props.getProperty(SERVER_RMIREG_PORT));
+    }
+
+    public static String getServerRMIPath() {
+        return props.getProperty(SERVER_RMIREG_PATH);
+    }
+
     // spread group name
     public static String getGroupName() {
         return props.getProperty(GROUP_NAME);
     }
-    // master server ip
 
-    public static String getMyServerAddress() {
-        return props.getProperty(MY_SERVER_ADDRESS);
+    /**
+     * Builds a String in RMU-URI format:   rmi://host:port/path/
+     * 
+     * @param host name or address
+     * @param port port number
+     * @param path namespace to object
+     * @return 
+     */
+    public static String buildRMIString(String host, int port, String path) {
+        StringBuilder sb = new StringBuilder("rmi://");
+        sb.append(host).append(":").append(port);
+        sb.append("/").append(path).append("/");
+        return sb.toString();
     }
 
     public static Properties getProps() {
@@ -87,11 +119,12 @@ public final class Util {
         }
     }
 
-    public static void handleDebugMessage(String prefix, String message){
-        System.out.print(prefix + ": " + message + "\n");       
+    public static void handleDebugMessage(String prefix, String message) {
+        System.out.print(prefix + ": " + message + "\n");
     }
+
     /**
-     * Checks whether a string is empty an returns {@code true} if it is,
+     * Checks whether a string is empty and returns {@code true} if it is,
      * otherwise {@code false}
      *
      * @param value
@@ -151,9 +184,8 @@ public final class Util {
      * deactivated again by calling method {@link #stopLog()}.
      *
      * @param filename name of file that should be used for logging
-     * @param level {@link Level} at which events should be logged
      */
-    public static void startLog(String filename, Level level) {
+    public static void startLog(String filename) {
         if (filename.isEmpty()) {
             throw new IllegalArgumentException("Filename must not be empty");
         }
@@ -182,7 +214,7 @@ public final class Util {
 
         try {
             file_handler = new FileHandler(filename, false);
-            mem_handler = new MemoryHandler(file_handler, 100, level);
+            mem_handler = new MemoryHandler(file_handler, 100, Level.ALL);
             l.addHandler(mem_handler);
             l.info("Logger set up properly");
         } catch (Exception e) {
@@ -199,15 +231,18 @@ public final class Util {
     public static void stopLog() {
 
         l.info("stopping logger...");
-        l.removeHandler(mem_handler);
 
         if (mem_handler != null) {
+            mem_handler.flush();
             mem_handler.close();
+            l.removeHandler(mem_handler);
             mem_handler = null;
         }
 
         if (file_handler != null) {
+            file_handler.flush();
             file_handler.close();
+            l.removeHandler(file_handler);
             file_handler = null;
         }
 

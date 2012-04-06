@@ -1,2 +1,10 @@
-java.util.logging.FileHandler.formatter=java.util.logging.SimpleFormatter
 .level=ALL
+java.util.logging.FileHandler.limit = 50000
+java.util.logging.FileHandler.count = 1
+#java.util.logging.FileHandler.formatter = java.util.logging.XMLFormatter
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+
+java.util.logging.ConsoleHandler.level = INFO
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+
+

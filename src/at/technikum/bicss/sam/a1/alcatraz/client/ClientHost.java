@@ -21,6 +21,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
  *
@@ -35,39 +36,25 @@ public class ClientHost implements MoveListener {
     private IServer _server = null;
     private LinkedList<Player> _playerlist = null;
     private Player _me = null;
+    private Alcatraz _actrz = null;
+    static private Logger l = null;
 
     public static void main(String[] args) {
+        Util.readProps();
+        Util.startLog("client.log");
+        l=Util.getLog();
         new ClientHost();
     }
 
-    public ClientHost() {
-        Util.readProps();
+    public ClientHost() {        
         _gui = new ClientGUI(this);
         _gui.setVisible(true);
 
         _me = new Player(null, 0, null, 0, false);
         _me.setPort(Util.getClientRMIPort());
-        _serverport = Util.getServerRMIPort();
 
-        // Check which of the servers is reachable
-        for (String s_addr : Util.getServerAddress()) {
-            try {
-                Socket sock = new Socket();
-                SocketAddress sock_addr = new InetSocketAddress(s_addr, _serverport);
-                sock.connect(sock_addr, 500);
-                _serveraddr = s_addr;
-                System.out.println("Reached server " + _serveraddr);
-                /*
-                 * remember own address with which the server was reached
-                 */
-                _me.setAddress(sock.getLocalAddress().getHostAddress());
-                sock.getLocalAddress().isReachable(_serverport);
-                break;
-            } catch (Exception e) {
-                System.err.println("Could not reach server at " + s_addr + " on " + _serverport);
-                System.err.println(e.toString());
-            }
-        }
+        contactServer();
+
         /*
          * http://docs.oracle.com/javase/1.4.2/docs/guide/rmi/javarmiproperties.html
          * use own address to be associated with remote stubs for locally
@@ -95,7 +82,50 @@ public class ClientHost implements MoveListener {
         }
 
         System.out.println("Alcatraz Client running.");
+    }
 
+    private void contactServer() {
+//        l.info("Try to find server for registration process...");
+//        _serverport = Util.getServerRMIPort();
+//        String rmi_uri = null;
+//        for (String s_addr : Util.getServerAddressList()) {
+//            try {
+//                rmi_uri = Util.buildRMIString(s_addr, _serverport, Util.getClientRMIPath());                
+//                l.info("Lookup " + rmi_uri);
+//                _server = (IServer) Naming.lookup(rmi_uri);
+//                l.info("Found! \n asking for MasterServer address...");
+//                _serveraddr = _server.getMasterServer();
+//                l.info("Master Server @ " + _serveraddr);
+//            } catch (NotBoundException e) {
+//                l.severe(e.getMessage());
+//            } catch (RemoteException e) {
+//                l.severe(e.getMessage());
+//            } catch (MalformedURLException e) {
+//                l.severe(e.getMessage());
+//            }
+//        }
+
+
+        // Check which of the servers is reachable
+        _serverport = Util.getServerRMIPort();
+        for (String s_addr : Util.getServerAddressList()) {
+            try {
+                Socket sock = new Socket();
+                SocketAddress sock_addr = new InetSocketAddress(s_addr, _serverport);
+                sock.connect(sock_addr, 500);
+                _serveraddr = s_addr;
+                System.out.println("Reached server " + _serveraddr);
+                /*
+                 * remember own address with which the server was reached
+                 */
+                _me.setAddress(sock.getLocalAddress().getHostAddress());
+                sock.getLocalAddress().isReachable(_serverport);
+                break;
+            } catch (Exception e) {
+                System.err.println("Could not reach server at " + s_addr + " on " + _serverport);
+                System.err.println(e.toString());
+            }
+        }
     }
 
     public void registerPlayer(String p_name) {
@@ -190,26 +220,32 @@ public class ClientHost implements MoveListener {
             // los gehts mit alcazraz 
             System.out.println("Game ready!");
 
-            Alcatraz a = new Alcatraz();
-            a.init(_playerlist.size(), _me.getId());
+            _actrz = new Alcatraz();
+            _actrz.init(_playerlist.size(), _me.getId());
 
             for (Player p : _playerlist) {
-                a.getPlayer(p.getId()).setName(p.getName());
+                _actrz.getPlayer(p.getId()).setName(p.getName());
             }
 
             _gui.setVisible(false);
-            a.showWindow();
+            /*
+             * set playername as title to distinguish several windows
+             */
+            _actrz.getWindow().setTitle(
+                    _actrz.getWindow().getTitle() + " - " + _me.getName());
+            _actrz.showWindow();
 
-            a.addMoveListener(this);
+            _actrz.addMoveListener(this);
 
-            a.start();
+            _actrz.start();
+
         }
     }
 
     @Override
     public void moveDone(at.falb.games.alcatraz.api.Player player, Prisoner prsnr, int i, int i1, int i2) {
         System.out.println("moveDone");
-        
+
         Move move = new Move(player, prsnr, i, i1, i2);
         IClient clientproxy = null;
         for (Player p : _playerlist) {
@@ -228,8 +264,13 @@ public class ClientHost implements MoveListener {
         }
     }
 
+    public void processMove(String name, Move m) {
+        _actrz.doMove(m.getPlayer(), m.getPrisoner(), m.getRowOrCol(), m.getRow(), m.getCol());
+    }
+
     @Override
     public void gameWon(at.falb.games.alcatraz.api.Player player) {
         System.out.println("gameWon");
+        Util.warnUser(_gui, "gameWon");
     }
 }
