@@ -121,7 +121,7 @@ public class ClientHost implements MoveListener {
                         + s_addr + ":" + _serverport, e);
                 _serveraddr = null;
             } catch (RemoteException e) { //thrown by Naming.lookup()
-                l.warn(s_addr + ":" + _serverport, e);
+                l.warn(e.getMessage(), e);
                 _serveraddr = null;
             } catch (MalformedURLException e) { //thrown by Naming.lookup()
                 l.error(e);
@@ -142,7 +142,6 @@ public class ClientHost implements MoveListener {
             sb.append("\n Check your config file.");
             sb.append("Ensure that at least one server is online");
             l.fatal(sb.toString());
-            Util.errorUser(_gui, sb.toString());
         }
     }
 

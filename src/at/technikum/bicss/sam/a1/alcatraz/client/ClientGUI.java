@@ -6,14 +6,16 @@ package at.technikum.bicss.sam.a1.alcatraz.client;
 
 import at.technikum.bicss.sam.a1.alcatraz.common.Player;
 import at.technikum.bicss.sam.a1.alcatraz.common.Util;
-import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.util.Formatter;
 import javax.swing.DefaultListModel;
 import java.util.LinkedList;
-import javax.swing.BoxLayout;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.border.BevelBorder;
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggingEvent;
 
 /**
  *
@@ -29,7 +31,14 @@ public class ClientGUI extends javax.swing.JFrame {
     public ClientGUI(ClientHost host) {
         initComponents();
         this.hosthandle = host;
+        Logger.getRootLogger().addAppender(this.new StatusMessageAppender());
 
+        // Screen Size
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        // Center position of frame
+        int top = (screenSize.height - this.getHeight()) / 2;
+        int left = (screenSize.width - this.getWidth()) / 2;
+        this.setLocation(left, top);
     }
 
     /**
@@ -52,6 +61,8 @@ public class ClientGUI extends javax.swing.JFrame {
         jLbl_StatusTxt = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Alcatraz");
+        setResizable(false);
 
         jLbl_PName.setText("Playername:");
 
@@ -86,16 +97,16 @@ public class ClientGUI extends javax.swing.JFrame {
         jPnl_StatusLayout.setHorizontalGroup(
             jPnl_StatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPnl_StatusLayout.createSequentialGroup()
-                .addGap(4, 4, 4)
+                .addGap(3, 3, 3)
                 .addComponent(jLbl_StatusTxt)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPnl_StatusLayout.setVerticalGroup(
             jPnl_StatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPnl_StatusLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPnl_StatusLayout.createSequentialGroup()
+                .addGap(4, 4, 4)
                 .addComponent(jLbl_StatusTxt)
-                .addGap(7, 7, 7))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -106,41 +117,37 @@ public class ClientGUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jBtn_Register, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 194, Short.MAX_VALUE)
-                        .addComponent(jBtn_Ready, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrlPne)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLbl_PName)
+                        .addGap(13, 13, 13)
+                        .addComponent(jTxtFld_PName))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLbl_PList)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLbl_PName)
-                        .addGap(13, 13, 13)
-                        .addComponent(jTxtFld_PName)))
+                        .addComponent(jBtn_Register, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                        .addComponent(jBtn_Ready, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(16, 16, 16)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLbl_PName)
-                            .addComponent(jTxtFld_PName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(10, 10, 10)
-                        .addComponent(jBtn_Register)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLbl_PList)
-                        .addGap(1, 1, 1))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jBtn_Ready)
-                        .addGap(18, 18, 18)))
-                .addComponent(jScrlPne, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
+                .addGap(16, 16, 16)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLbl_PName)
+                    .addComponent(jTxtFld_PName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jBtn_Register)
+                    .addComponent(jBtn_Ready))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPnl_Status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jLbl_PList)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrlPne, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPnl_Status, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -252,14 +259,46 @@ public class ClientGUI extends javax.swing.JFrame {
     public void updatePlayerList(LinkedList<Player> pl) {
         DefaultListModel lm = new DefaultListModel();
         if (pl != null) {
+            Formatter fmt = new Formatter();
+            String maxlen = new String(Integer.toString(Util.NAME_MAX_LENGTH));
             for (Player p : pl) {
-                lm.addElement(p.toString());
+                fmt.format("%-" + maxlen + "s %-20s ( @ %s : %d )",
+                        p.getName(), (p.isReady() ? "ready  " : "waiting"),
+                        p.getAddress(), p.getPort());;
+                lm.addElement(fmt.toString());
             }
-    }
+        }
         this.jLst_PlayerList.setModel(lm);
     }
 
     public void setStatusText(String text) {
         jLbl_StatusTxt.setText(text);
+    }
+
+    public class StatusMessageAppender extends AppenderSkeleton {
+
+        @Override
+        protected void append(LoggingEvent event) {
+            if (event.getLevel().equals(Level.INFO)) {
+                jLbl_StatusTxt.setForeground(Color.BLACK);
+                jLbl_StatusTxt.setText(event.getMessage().toString());
+            } else if (event.getLevel().equals(Level.WARN)) {
+                jLbl_StatusTxt.setForeground(Color.RED);
+                jLbl_StatusTxt.setText(event.getMessage().toString());
+            } else if (event.getLevel().equals(Level.ERROR)) {
+                Util.warnUser(ClientGUI.this, event.getMessage().toString());
+            } else if (event.getLevel().equals(Level.FATAL)) {
+                Util.errorUser(ClientGUI.this, event.getMessage().toString());
+            }
+        }
+
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public boolean requiresLayout() {
+            return false;
+        }
     }
 }

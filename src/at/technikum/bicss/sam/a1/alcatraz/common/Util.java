@@ -27,6 +27,9 @@ public final class Util {
     static final public String SERVER_RMIREG_PORT = "server_rmireg_port";
     static final public String SERVER_RMIREG_PATH = "server_rmireg_path";
     static final public String GROUP_NAME = "spread_group_name";
+
+    static final public int NAME_MAX_LENGTH = 30;
+    
     private static Properties props = null;
     private static Logger l = Logger.getRootLogger();
 
