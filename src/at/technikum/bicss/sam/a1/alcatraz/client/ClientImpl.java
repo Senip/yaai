@@ -31,9 +31,9 @@ public class ClientImpl extends UnicastRemoteObject implements IClient {
     }
 
     @Override
-    public void doMove(String name, Move m) throws RemoteException {
+    public void doMove(Move m) throws RemoteException {
         System.out.println("\nreceived Move");
-        hosthandle.processMove(name, m);
+        hosthandle.processMove(m);
         
     }
 }

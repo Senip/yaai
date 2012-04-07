@@ -5,7 +5,7 @@
 ################################################################################
 server_address_list=10.0.0.2,10.0.0.3,10.0.0.4,192.168.1.109,192.168.1.110
 client_rmireg_port=1098
-client_rmireg_path=/Alcatraz/Client/
+client_rmireg_path=Alcatraz/Client
 
 
 ################################################################################
@@ -13,7 +13,24 @@ client_rmireg_path=/Alcatraz/Client/
 ################################################################################
 my_server_host_address=10.0.0.4
 server_rmireg_port=1099
-server_rmireg_path=/Alcatraz/Server/
+server_rmireg_path=Alcatraz/Server
 spread_group_name=alcatraz
 
+
+################################################################################
+# Logging Properties
+################################################################################
+log4j.rootLogger=debug, stdout, file_log
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+#log4j.appender.stdout.layout.ConversionPattern=%-5p [%t]@%l%n%c: %m%n%n
+log4j.appender.stdout.layout.ConversionPattern=%-5p %c: %m%n
+
+log4j.appender.file_log=org.apache.log4j.RollingFileAppender
+log4j.appender.file_log.File=alcatraz.log
+log4j.appender.file_log.MaxFileSize=500KB
+log4j.appender.file_log.MaxBackupIndex=0
+log4j.appender.file_log.layout=org.apache.log4j.PatternLayout
+log4j.appender.file_log.layout.ConversionPattern=%-5p %r <%d> [%t] %l %n%c: %m%n%n
 

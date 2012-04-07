@@ -7,11 +7,13 @@ package at.technikum.bicss.sam.a1.alcatraz.server;
 import at.technikum.bicss.sam.a1.alcatraz.common.IClient;
 import at.technikum.bicss.sam.a1.alcatraz.common.IServer;
 import at.technikum.bicss.sam.a1.alcatraz.common.Player;
+import at.technikum.bicss.sam.a1.alcatraz.common.Util;
 import at.technikum.bicss.sam.a1.alcatraz.server.spread.PlayerList;
 import at.technikum.bicss.sam.a1.alcatraz.server.spread.SpreadServer;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.LinkedList;
 
 /**
  *
@@ -31,23 +33,16 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     }
 
     private void broadcastPlayerList() {
-        String rmi_adr = null;
-        renumberIDs(player_list);
+        player_list.renumberIDs();
         for (Player p : player_list) {
-            rmi_adr = new String("rmi://" + p.getAddress() + ":" + p.getPort() + "/Alcatraz/ClientImpl/" + p.getName());
+            String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(), 
+                    Util.getClientRMIPath(), p.getName());
             try {
-                IClient c = (IClient) Naming.lookup(rmi_adr);
+                IClient c = (IClient) Naming.lookup(rmi_uri);
                 c.updatePlayerList(player_list.getLinkedList());
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private void renumberIDs(PlayerList pl) {
-        //renumber IDs if there was a change in playerlist
-        for (Player p : player_list) {
-            p.setId(player_list.getLinkedList().indexOf(p));
         }
     }
 

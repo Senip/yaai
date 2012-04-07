@@ -65,5 +65,14 @@ public class PlayerList implements Serializable, Iterable<Player>{
     public void setLinkedList(LinkedList<Player> ll) {
         player_list = ll;
     }
+    
+    public void renumberIDs() {
+        Iterator<Player> it = player_list.iterator();
+        int ctr = 0;
+        
+        for(ctr=0; it.hasNext(); ctr++) {
+            it.next().setId(ctr);
+        }        
+    }
 
 }

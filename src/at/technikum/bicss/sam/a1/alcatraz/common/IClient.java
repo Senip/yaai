@@ -14,6 +14,6 @@ import java.util.LinkedList;
  */
 public interface IClient extends Remote{
     public void updatePlayerList(LinkedList<Player> pl) throws RemoteException;
-    public void doMove (String name, Move m) throws RemoteException;
+    public void doMove(Move m) throws RemoteException;
     
 }

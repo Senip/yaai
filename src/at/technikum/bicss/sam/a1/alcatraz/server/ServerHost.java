@@ -47,9 +47,10 @@ public class ServerHost {
         System.out.println("SERVER: Bind...");
         try {
             IServer server = new ServerImpl();
-            //rmireg.rebind("rmi://localhost:1099/Alcatraz/ServerImpl", server);
-            Naming.rebind("rmi://localhost:1099/Alcatraz/ServerImpl", server);
-            Util.printRMIReg(rmireg);
+            String rmi_uri = Util.buildRMIString(Util.getMyServerAddress(), 
+                    Util.getServerRMIPort(), Util.getServerRMIPath());
+            Naming.rebind(rmi_uri, server);
+            Util.logRMIReg(rmireg);
             System.out.println("SERVER: Alcatraz running...");
         } catch (Exception e) {
             e.printStackTrace();
