@@ -14,6 +14,12 @@ import org.apache.log4j.PropertyConfigurator;
 public final class Util {
 
     static final private String PROP_FILE = "alcatraz.props";
+    
+    /**
+     * General Properties
+     */
+    static final private String CONNECTION_TIMEOUT = "connection_timeout_ms";
+    static final public int NAME_MAX_LENGTH = 30;
     /**
      * Client Properties
      */
@@ -27,9 +33,6 @@ public final class Util {
     static final public String SERVER_RMIREG_PORT = "server_rmireg_port";
     static final public String SERVER_RMIREG_PATH = "server_rmireg_path";
     static final public String GROUP_NAME = "spread_group_name";
-
-    static final public int NAME_MAX_LENGTH = 30;
-    
     private static Properties props = null;
     private static Logger l = Logger.getRootLogger();
 
@@ -50,6 +53,10 @@ public final class Util {
         PropertyConfigurator.configure(props);
     }
 
+    public static int getConTimeOut() {
+        return Integer.valueOf(props.getProperty(CONNECTION_TIMEOUT));
+    }
+    
     public static String[] getServerAddressList() {
         return props.getProperty(SERVER_ADDRESS_LIST).split(",");
     }

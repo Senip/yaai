@@ -56,7 +56,6 @@ public class ClientHost implements MoveListener {
         _gui.setVisible(true);
 
         _me = new Player(null, 0, null, 0, false);
-        _me.setPort(Util.getClientRMIPort());
 
         try {
             _client = new ClientImpl(this);
@@ -65,71 +64,96 @@ public class ClientHost implements MoveListener {
         }
 
         contactServer();
-
-        /*
-         * http://docs.oracle.com/javase/1.4.2/docs/guide/rmi/javarmiproperties.html
-         * use own address to be associated with remote stubs for locally
-         * created remote objects
-         */
-        System.setProperty("java.rmi.server.hostname", _me.getAddress());
-
-
-        // Register own Client-Services
-        l.info("Set up own registry...");
-        try {
-            _rmireg = LocateRegistry.createRegistry(_me.getPort());
-        } catch (RemoteException e) {
-            l.error("Not able to create registry on port: " + _me.getPort(), e);
-            l.info("try to search for active registry");
-        }
-        try {
-            _rmireg = LocateRegistry.getRegistry(_me.getPort());
-            l.info("Got registry on port " + _me.getPort());
-        } catch (RemoteException e) {
-            l.error("Remote Exception", e);
-        }
-
-        l.info("Alcatraz Client running.");
+        setupClientRMI();
+        l.info("Alcatraz Client running on " + _me.getAddress() + ":" + _me.getPort());
     }
 
+    /**
+     * Tries to find a running Alcatraz server process
+     *
+     * This is done by parsing the server addresses given in the property-file.
+     * 1. Try to establish a connetion to a server on the RMI-port with a socket
+     *
+     * 2. if successfull, try to ask for the master server address
+     *
+     * 3. if successfull and master server is on different address, check again
+     * if master-server is reachable on RMI-port with a socket
+     *
+     * if there is a problem in any of these steps, continue with next address
+     * of property file
+     *
+     * on successfull completion {@code _serveraddr} is set to the Alcatraz
+     * master server address and {@code _server) holds a reference to the remote {@link IServer}
+     * object on failure both will be set to {@code null}
+     */
     private void contactServer() {
         l.info("Try to find server for registration process...");
         _serveraddr = null;
         _serverport = Util.getServerRMIPort();
+        Socket sock = null;
+        SocketAddress sock_addr = null;
+
+        _gui.lockRegisterBtn(true);
+
         String rmi_uri = null;
         for (String s_addr : Util.getServerAddressList()) {
             try {
-                rmi_uri = Util.buildRMIString(s_addr, _serverport, Util.getServerRMIPath());
+                _serveraddr = s_addr;
+
+                // 1. Establish a connetion to a server on the RMI-port with a socket                
+                sock = new Socket();
+                sock_addr = new InetSocketAddress(_serveraddr, _serverport);
+                sock.connect(sock_addr, Util.getConTimeOut());
+                // to determine own address of used network interface
+                _me.setAddress(sock.getLocalAddress().getHostAddress());
+                l.debug("Reached server:" + _serveraddr + ":" + _serverport);
+                sock.close();
+
+                // 2. Ask for the master server address
+                rmi_uri = Util.buildRMIString(_serveraddr, _serverport, Util.getServerRMIPath());
                 l.debug("Lookup " + rmi_uri);
                 _server = (IServer) Naming.lookup(rmi_uri);
-                l.debug("Found " + rmi_uri
-                        + " --> asking for master registration server");
+                l.debug("Asking for master registration server ");
                 _serveraddr = _server.getMasterServer();
-                l.debug("master registration server at " + _serveraddr);
-                //connect with a socket to this master server 
-                //to determine own address of used network interface
-                Socket sock = new Socket();
-                SocketAddress sock_addr = new InetSocketAddress(_serveraddr, _serverport);
-                sock.connect(sock_addr, 1000);
-                l.info("Reached server " + _serveraddr);
-                _me.setAddress(sock.getLocalAddress().getHostAddress());
-                sock.close();
-                //sock.getLocalAddress().isReachable(_serverport);
+                l.debug("Master registration server at " + _serveraddr + ":" + _serverport);
+
+
+                // 3. if master server is on different address:
+                if (!_serveraddr.equals(s_addr)) {
+                    // check again if master-server is reachable on RMI-port with a socket
+                    sock = new Socket();
+                    sock_addr = new InetSocketAddress(_serveraddr, _serverport);
+                    sock.connect(sock_addr, Util.getConTimeOut());
+                    // to determine own address of used network interface
+                    _me.setAddress(sock.getLocalAddress().getHostAddress());
+                    sock.close();
+
+                    // Obtain reference to remote object
+                    rmi_uri = Util.buildRMIString(_serveraddr, _serverport, Util.getServerRMIPath());
+                    l.debug("Lookup " + rmi_uri);
+                    _server = (IServer) Naming.lookup(rmi_uri);
+                }
+                l.info("Reached master server at " + _serveraddr + ":" + _serverport);
+                _gui.lockRegisterBtn(false);
                 break;
             } catch (NotBoundException e) { //thrown by Naming.lookup()
-                l.warn(Util.getServerRMIPath() + " seems to be not bound on "
-                        + s_addr + ":" + _serverport, e);
+                l.warn(Util.getServerRMIPath() + " seems to be not bound"
+                        + _serveraddr + ":" + _serverport, e);
                 _serveraddr = null;
+                _server = null;
             } catch (RemoteException e) { //thrown by Naming.lookup()
                 l.warn(e.getMessage(), e);
                 _serveraddr = null;
+                _server = null;
             } catch (MalformedURLException e) { //thrown by Naming.lookup()
                 l.error(e);
                 _serveraddr = null;
+                _server = null;
             } catch (IOException e) { //thrown by sock.connect()
-                l.warn("master registration server not reachable"
+                l.warn("registration server not reachable at "
                         + _serveraddr + ":" + _serverport, e);
                 _serveraddr = null;
+                _server = null;
             }
         }
 
@@ -139,10 +163,39 @@ public class ClientHost implements MoveListener {
             for (String s : Util.getServerAddressList()) {
                 sb.append(s).append("\n");
             }
-            sb.append("\n Check your config file.");
-            sb.append("Ensure that at least one server is online");
+            sb.append("\n Check your config file. ");
+            sb.append("Ensure that at least one registration server is online");
             l.fatal(sb.toString());
         }
+    }
+
+    private void setupClientRMI() {
+        /*
+         * http://docs.oracle.com/javase/1.4.2/docs/guide/rmi/javarmiproperties.html
+         * use own address to be associated with remote stubs for locally
+         * created remote objects
+         */
+        _gui.lockRegisterBtn(true);
+        System.setProperty("java.rmi.server.hostname", _me.getAddress());
+
+        // get default client RMI port from prop-file
+        int port = Util.getClientRMIPort();
+
+        // Register own Client-Services
+        l.info("Set up RMI registry for own client services...");
+        do {
+            try {
+                _rmireg = LocateRegistry.createRegistry(port);
+            } catch (RemoteException e) {
+                l.debug("Not able to create registry on port: " + _me.getPort(), e);
+                port++;
+                l.debug("trying different port: " + port);
+            }
+            break;
+        } while (true);
+
+        _me.setPort(port);
+        _gui.lockRegisterBtn(false);
     }
 
     public void registerPlayer(String p_name) {
@@ -270,15 +323,15 @@ public class ClientHost implements MoveListener {
                     clientproxy = (IClient) Naming.lookup(rmi_uri);
                     clientproxy.doMove(move);
                     break;
-                } catch (NotBoundException e) { 
+                } catch (NotBoundException e) {
                     l.warn(Util.getClientRMIPath() + p.getName()
                             + " seems to be not bound on "
                             + p.getAddress() + ":" + p.getPort(), e);
-                } catch (RemoteException e) { 
+                } catch (RemoteException e) {
                     l.warn(p.getAddress() + ":" + p.getPort(), e);
-                } catch (MalformedURLException e) { 
+                } catch (MalformedURLException e) {
                     l.error(e);
-                } 
+                }
             }
 
         }

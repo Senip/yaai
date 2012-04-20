@@ -24,6 +24,7 @@ import org.apache.log4j.spi.LoggingEvent;
 public class ClientGUI extends javax.swing.JFrame {
 
     private ClientHost hosthandle = null;
+    private boolean JBtn_Register_oldstate = false;
 
     /**
      * Creates new form ClientGUI
@@ -273,6 +274,15 @@ public class ClientGUI extends javax.swing.JFrame {
 
     public void setStatusText(String text) {
         jLbl_StatusTxt.setText(text);
+    }
+
+    public void lockRegisterBtn(boolean lock) {
+        if (lock == true) {
+            JBtn_Register_oldstate = jBtn_Register.isEnabled();
+            jBtn_Register.setEnabled(false);
+        } else {
+            jBtn_Register.setEnabled(JBtn_Register_oldstate);
+        }
     }
 
     public class StatusMessageAppender extends AppenderSkeleton {
