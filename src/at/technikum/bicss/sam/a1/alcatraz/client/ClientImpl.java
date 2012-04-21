@@ -24,12 +24,12 @@ public class ClientImpl extends UnicastRemoteObject implements IClient {
     }
 
     @Override
-    public void updatePlayerList(LinkedList<Player> pl) throws RemoteException {
+    public synchronized void updatePlayerList(LinkedList<Player> pl) throws RemoteException {
         hosthandle.processPlayerList(pl);
     }
 
     @Override
-    public void doMove(Move m) throws RemoteException {
+    public synchronized void doMove(Move m) throws RemoteException {
         hosthandle.processMove(m);        
     }
 }

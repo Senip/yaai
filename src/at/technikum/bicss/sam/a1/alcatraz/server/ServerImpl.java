@@ -44,7 +44,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     }
 
     @Override
-    public void register(String name, String address, int port) throws RemoteException, AlcatrazServerException {
+    public synchronized void register(String name, String address, int port) throws RemoteException, AlcatrazServerException {
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
                 throw new AlcatrazServerException("Player with name " + name
@@ -65,7 +65,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     }
 
     @Override
-    public void deregister(String name) throws RemoteException, AlcatrazServerException {
+    public synchronized void deregister(String name) throws RemoteException, AlcatrazServerException {
         Player p_remove = null;
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
@@ -83,7 +83,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     }
 
     @Override
-    public void setStatus(String name, boolean ready) throws RemoteException, AlcatrazServerException {
+    public synchronized void setStatus(String name, boolean ready) throws RemoteException, AlcatrazServerException {
         Player p_status = null;
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
