@@ -160,47 +160,49 @@ public class ClientGUI extends javax.swing.JFrame {
                 Util.errorUser(this, "Player Name must not contain spaces");
             } else {
                 jTxtFld_PName.setEditable(false);
-                jBtn_Register.setEnabled(false);;
+                jBtn_Register.setEnabled(false);
 
-                hosthandle.registerPlayer(this.jTxtFld_PName.getText());
-
-                jBtn_Register.setText("Unregister");
-                jBtn_Register.setActionCommand("unregister");
+                if (hosthandle.registerPlayer(this.jTxtFld_PName.getText())) {
+                    jBtn_Register.setText("Unregister");
+                    jBtn_Register.setActionCommand("unregister");
+                    jBtn_Ready.setEnabled(true);
+                } else {
+                    jTxtFld_PName.setEditable(true);
+                }
                 jBtn_Register.setEnabled(true);
-                jBtn_Ready.setEnabled(true);
             }
-            jBtn_Register.setEnabled(rootPaneCheckingEnabled);
+            //jBtn_Register.setEnabled(rootPaneCheckingEnabled);
         }
 
         if (evt.getActionCommand().toString().equals("unregister")) {
             jBtn_Register.setEnabled(false);
 
-            hosthandle.unregisterPlayer();
-
-            jBtn_Register.setText("Register");
-            jBtn_Register.setActionCommand("register");
+            if (hosthandle.unregisterPlayer(this.jTxtFld_PName.getText())) {
+                jBtn_Register.setText("Register");
+                jBtn_Register.setActionCommand("register");
+                jBtn_Ready.setEnabled(false);
+                jTxtFld_PName.setEditable(true);
+            }
             jBtn_Register.setEnabled(true);
-            jBtn_Ready.setEnabled(false);
-            jTxtFld_PName.setEditable(true);
         }
 
         if (evt.getActionCommand().toString().equals("ready")) {
             jBtn_Ready.setEnabled(false);
 
-            hosthandle.setReady(true);
-
-            jBtn_Ready.setText("No, wait!");
-            jBtn_Ready.setActionCommand("wait");
+            if (hosthandle.setReady(true)) {
+                jBtn_Ready.setText("No, wait!");
+                jBtn_Ready.setActionCommand("wait");
+            }
             jBtn_Ready.setEnabled(true);
         }
 
         if (evt.getActionCommand().toString().equals("wait")) {
             jBtn_Ready.setEnabled(false);
 
-            hosthandle.setReady(false);
-
-            jBtn_Ready.setText("Ready!");
-            jBtn_Ready.setActionCommand("ready");
+            if (hosthandle.setReady(true)) {
+                jBtn_Ready.setText("Ready!");
+                jBtn_Ready.setActionCommand("ready");
+            }
             jBtn_Ready.setEnabled(true);
         }
     }//GEN-LAST:event_ButtonActionPerformed
@@ -260,9 +262,9 @@ public class ClientGUI extends javax.swing.JFrame {
     public void updatePlayerList(LinkedList<Player> pl) {
         DefaultListModel lm = new DefaultListModel();
         if (pl != null) {
-            Formatter fmt = new Formatter();
             String maxlen = new String(Integer.toString(Util.NAME_MAX_LENGTH));
             for (Player p : pl) {
+                Formatter fmt = new Formatter();
                 fmt.format("%-" + maxlen + "s %-20s ( @ %s : %d )",
                         p.getName(), (p.isReady() ? "ready  " : "waiting"),
                         p.getAddress(), p.getPort());;

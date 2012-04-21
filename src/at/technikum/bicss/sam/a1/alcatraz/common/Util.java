@@ -5,6 +5,7 @@ import java.rmi.AccessException;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.util.Properties;
+import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -14,7 +15,6 @@ import org.apache.log4j.PropertyConfigurator;
 public final class Util {
 
     static final private String PROP_FILE = "alcatraz.props";
-    
     /**
      * General Properties
      */
@@ -26,6 +26,8 @@ public final class Util {
     static final public String SERVER_ADDRESS_LIST = "server_address_list";
     static final public String CLIENT_RMIREG_PORT = "client_rmireg_port";
     static final public String CLIENT_RMIREG_PATH = "client_rmireg_path";
+    static final private int CLIENT_RMIREG_PORT_MIN = 49152;
+    static final private int CLIENT_RMIREG_PORT_MAX = 65535;
     /**
      * Server Properties
      */
@@ -56,7 +58,7 @@ public final class Util {
     public static int getConTimeOut() {
         return Integer.valueOf(props.getProperty(CONNECTION_TIMEOUT));
     }
-    
+
     public static String[] getServerAddressList() {
         return props.getProperty(SERVER_ADDRESS_LIST).split(",");
     }
@@ -128,6 +130,18 @@ public final class Util {
             sb.append(s).append("\n");
         }
         l.debug(sb.toString());
+    }
+
+    public static int getRandomPort() {
+        int port_min = 49152;
+        int port_max = 65535;
+
+        Random random = new Random();
+        int randomPort = 
+                random.nextInt(CLIENT_RMIREG_PORT_MAX - CLIENT_RMIREG_PORT_MIN) 
+                + CLIENT_RMIREG_PORT_MIN;
+        l.debug("Generated random port number: " + randomPort);
+        return randomPort;
     }
 
     public static void handleDebugMessage(String prefix, String message) {

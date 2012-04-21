@@ -4,16 +4,12 @@
  */
 package at.technikum.bicss.sam.a1.alcatraz.server;
 
-import at.technikum.bicss.sam.a1.alcatraz.common.IClient;
-import at.technikum.bicss.sam.a1.alcatraz.common.IServer;
-import at.technikum.bicss.sam.a1.alcatraz.common.Player;
-import at.technikum.bicss.sam.a1.alcatraz.common.Util;
+import at.technikum.bicss.sam.a1.alcatraz.common.*;
 import at.technikum.bicss.sam.a1.alcatraz.server.spread.PlayerList;
 import at.technikum.bicss.sam.a1.alcatraz.server.spread.SpreadServer;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.LinkedList;
 
 /**
  *
@@ -35,7 +31,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     private void broadcastPlayerList() {
         player_list.renumberIDs();
         for (Player p : player_list) {
-            String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(), 
+            String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
                     Util.getClientRMIPath(), p.getName());
             try {
                 IClient c = (IClient) Naming.lookup(rmi_uri);
@@ -47,7 +43,19 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
     }
 
     @Override
-    public void register(String name, String address, int port) throws RemoteException {
+    public void register(String name, String address, int port) throws RemoteException, AlcatrazServerException {
+        for (Player p : player_list) {
+            if (p.getName().equals(name)) {
+                throw new AlcatrazServerException("Player with name " + name
+                        + " already registered.\nName must be unique, "
+                        + "please us a different name.");
+            }
+        }
+        if (player_list.getLinkedList().size() >= 4) {
+            throw new AlcatrazServerException("This game is already full! "
+                    + "(max. 4 Players)\nPlease try some time later.");
+        }
+
         Player newPlayer = new Player(name, 0, address, port, false);
         player_list.add(newPlayer);
 
@@ -55,24 +63,40 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
         broadcastPlayerList();
     }
 
-    public void deregister(String name) throws RemoteException {
+    @Override
+    public void deregister(String name) throws RemoteException, AlcatrazServerException {
         Player p_remove = null;
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
                 p_remove = p;
             }
         }
-        player_list.remove(p_remove);
-        broadcastPlayerList();
+
+        if (p_remove == null) {
+            throw new AlcatrazServerException("Playername " + name
+                    + " not found!");
+        } else {
+            player_list.remove(p_remove);
+            broadcastPlayerList();
+        }
     }
 
-    public void setStatus(String name, boolean ready) throws RemoteException {
+    @Override
+    public void setStatus(String name, boolean ready) throws RemoteException, AlcatrazServerException {
+        Player p_status = null;
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
-                p.setReady(ready);
+                p_status = p;
             }
         }
-        broadcastPlayerList();
+
+        if (p_status == null) {
+            throw new AlcatrazServerException("Playername " + name
+                    + " not found!");
+        } else {
+            p_status.setReady(ready);
+            broadcastPlayerList();
+        }
     }
 
     @Override
