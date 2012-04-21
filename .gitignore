@@ -5,3 +5,4 @@
 /lib/spread-bin-4.0.0
 /spread_w32.cmd
 *.log
+/spread/bin/win32/spread_rudi.conf

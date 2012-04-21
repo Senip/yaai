@@ -1,2 +1,2 @@
 ipconfig
-spread.exe -c spread_rudi.conf
+spread.exe -c ../../spread_private.conf
