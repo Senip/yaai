@@ -1,5 +1,7 @@
 package at.technikum.bicss.sam.a1.alcatraz.common;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.FileInputStream;
 import java.rmi.AccessException;
 import java.rmi.RemoteException;
@@ -132,13 +134,21 @@ public final class Util {
         l.debug(sb.toString());
     }
 
+    public static void centerFrame(JFrame frm) {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        // Center position of frame
+        int top = (screenSize.height - frm.getHeight()) / 2;
+        int left = (screenSize.width - frm.getWidth()) / 2;
+        frm.setLocation(left, top);
+    }
+
     public static int getRandomPort() {
         int port_min = 49152;
         int port_max = 65535;
 
         Random random = new Random();
-        int randomPort = 
-                random.nextInt(CLIENT_RMIREG_PORT_MAX - CLIENT_RMIREG_PORT_MIN) 
+        int randomPort =
+                random.nextInt(CLIENT_RMIREG_PORT_MAX - CLIENT_RMIREG_PORT_MIN)
                 + CLIENT_RMIREG_PORT_MIN;
         l.debug("Generated random port number: " + randomPort);
         return randomPort;

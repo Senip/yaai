@@ -14,7 +14,7 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
     private String address;
     private int port;
     private boolean ready;
-
+    private IClient proxy;
 
     public Player(String name, int id, String address, int port, boolean ready) {
         super(id);
@@ -22,6 +22,7 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
         this.address = address;
         this.port = port;
         this.ready = ready;
+        proxy = null;
     }       
 
     public String getAddress() {
@@ -48,6 +49,14 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
         this.ready = ready;
     }
 
+    public IClient getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(IClient proxy) {
+        this.proxy = proxy;
+    }
+    
     @Override
     public String toString() {
         return "Player{" + "name=" + super.getName() + ", id=" + super.getId() 

@@ -25,15 +25,11 @@ public class ClientImpl extends UnicastRemoteObject implements IClient {
 
     @Override
     public void updatePlayerList(LinkedList<Player> pl) throws RemoteException {
-        System.out.println("\nUpdate of Playerlist");
-        System.out.println(pl.toString());
         hosthandle.processPlayerList(pl);
     }
 
     @Override
     public void doMove(Move m) throws RemoteException {
-        System.out.println("\nreceived Move");
-        hosthandle.processMove(m);
-        
+        hosthandle.processMove(m);        
     }
 }

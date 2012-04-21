@@ -33,13 +33,8 @@ public class ClientGUI extends javax.swing.JFrame {
         initComponents();
         this.hosthandle = host;
         Logger.getRootLogger().addAppender(this.new StatusMessageAppender());
-
-        // Screen Size
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        // Center position of frame
-        int top = (screenSize.height - this.getHeight()) / 2;
-        int left = (screenSize.width - this.getWidth()) / 2;
-        this.setLocation(left, top);
+        
+        Util.centerFrame(this);
     }
 
     /**

@@ -8,6 +8,8 @@ import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.MoveListener;
 import at.falb.games.alcatraz.api.Prisoner;
 import at.technikum.bicss.sam.a1.alcatraz.common.*;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -270,7 +272,7 @@ public class ClientHost implements MoveListener {
 
     public boolean setReady(boolean state) {
         boolean success = false;
-        l.debug("Try to send state of " + _me.getName());
+        l.debug("Try to update state of " + _me.getName());
         try {
             _server.setStatus(_me.getName(), state);
             success = true;
@@ -323,6 +325,7 @@ public class ClientHost implements MoveListener {
         for (Player p : _playerlist) {
             _actrz.getPlayer(p.getId()).setName(p.getName());
         }
+        retreivePlayerProxys();        
 
         _gui.setVisible(false);
         /*
@@ -330,11 +333,36 @@ public class ClientHost implements MoveListener {
          */
         _actrz.getWindow().setTitle(
                 _actrz.getWindow().getTitle() + " - " + _me.getName());
+
+        Util.centerFrame(_actrz.getWindow());
         _actrz.showWindow();
 
         _actrz.addMoveListener(this);
 
         _actrz.start();
+    }
+
+    private void retreivePlayerProxys() {        
+        for (Player p : _playerlist) {
+            if (p.getName().equals(_me.getName())) {
+                break;
+            }
+            try {
+                String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(), Util.getClientRMIPath(), p.getName());
+                l.info("Obtaining proxy: " + rmi_uri);
+                IClient clientproxy = null;
+                clientproxy = (IClient) Naming.lookup(rmi_uri);
+                p.setProxy(clientproxy);
+            } catch (NotBoundException e) {
+                l.warn(Util.getClientRMIPath() + p.getName()
+                        + " seems to be not bound on "
+                        + p.getAddress() + ":" + p.getPort(), e);
+            } catch (RemoteException e) {
+                l.warn(p.getAddress() + ":" + p.getPort(), e);
+            } catch (MalformedURLException e) {
+                l.error(e);
+            }
+        }
     }
 
     public void processMove(Move m) {
@@ -349,40 +377,30 @@ public class ClientHost implements MoveListener {
         Move move = new Move(player, prsnr, i, i1, i2);
         l.trace(move.toString());
 
-        IClient clientproxy = null;
         for (Player p : _playerlist) {
-            if (p.equals(_me)) {
+            if (p.getName().equals(_me.getName())) {
                 break;
             }
 
             while (true) {
                 try {
-                    String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(), Util.getClientRMIPath(), p.getName());
-                    l.info("Sending move to " + rmi_uri);
-                    clientproxy = (IClient) Naming.lookup(rmi_uri);
-                    clientproxy.doMove(move);
+                    l.debug("Sending move to " + p.toString());
+                    p.getProxy().doMove(move);
                     break;
-                } catch (NotBoundException e) {
-                    l.warn(Util.getClientRMIPath() + p.getName()
-                            + " seems to be not bound on "
-                            + p.getAddress() + ":" + p.getPort(), e);
                 } catch (RemoteException e) {
                     l.warn(p.getAddress() + ":" + p.getPort(), e);
-                } catch (MalformedURLException e) {
-                    l.error(e);
                 }
             }
-
         }
     }
 
     @Override
     public void gameWon(at.falb.games.alcatraz.api.Player player) {
         l.info(player.getName() + " has won the game");
-        Util.warnUser(_gui, (player.getName() + " has won the game"));
+        Util.warnUser(_actrz.getWindow(), (player.getName() + " has won the game"));
 
-        _actrz.disposeWindow();
         _actrz.closeWindow();
+        _actrz.disposeWindow();
         _gui.setVisible(true);
     }
 }
