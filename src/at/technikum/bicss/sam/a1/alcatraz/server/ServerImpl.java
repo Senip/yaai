@@ -97,7 +97,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
         } else {
             p_status.setReady(ready);
             broadcastPlayerList();
-            if (allReady(player_list.getLinkedList())) {
+            if (player_list.allReady()) {
                 spread_server.setPlayerList(new LinkedList());
                 player_list = spread_server.getPlayerList();
                 player_list.triggeraddObjectChangedEvent();
@@ -105,21 +105,6 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
             player_list.triggeraddObjectChangedEvent();
 
         }
-    }
-
-    private boolean allReady(LinkedList<Player> pl) {
-        boolean ready = false;
-        int ctr = 0;
-        for (Player p : pl) {
-            // count how many players are ready
-            if (p.isReady()) {
-                ctr++;
-            }
-        }
-        if ((ctr == pl.size()) && (ctr >= 2)) {
-            ready = true;
-        }
-        return ready;
     }
 
     @Override

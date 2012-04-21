@@ -194,7 +194,7 @@ public class ClientGUI extends javax.swing.JFrame {
         if (evt.getActionCommand().toString().equals("wait")) {
             jBtn_Ready.setEnabled(false);
 
-            if (hosthandle.setReady(true)) {
+            if (hosthandle.setReady(false)) {
                 jBtn_Ready.setText("Ready!");
                 jBtn_Ready.setActionCommand("ready");
             }
