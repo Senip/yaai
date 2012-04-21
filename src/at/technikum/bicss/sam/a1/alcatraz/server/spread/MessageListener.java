@@ -75,9 +75,12 @@ public class MessageListener implements AdvancedMessageListener {
 
         Util.handleDebugMessage("SPREAD", "Membership Message recieved");
         Util.handleDebugMessage("SPREAD", "Members: " + msi.getMembers());
+        if(msi.getMembers() != null){
         Util.handleDebugMessage("SPREAD", "Group Members: "
                 + msi.getMembers().length);
+        
         Util.handleDebugMessage("SPREAD", "Group ID: " + msi.getGroupID());
+        }
         // there is a join
         if (msi.isCausedByJoin()) {
 
