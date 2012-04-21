@@ -6,3 +6,4 @@
 /spread_w32.cmd
 *.log
 /spread/bin/win32/spread_rudi.conf
+/alcatraz.props

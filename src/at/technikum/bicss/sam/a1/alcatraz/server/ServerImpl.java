@@ -10,6 +10,7 @@ import at.technikum.bicss.sam.a1.alcatraz.server.spread.SpreadServer;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.LinkedList;
 
 /**
  *
@@ -96,7 +97,26 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
         } else {
             p_status.setReady(ready);
             broadcastPlayerList();
+            if (allReady(player_list.getLinkedList())) {
+                spread_server.setPlayerList(new LinkedList());
+                player_list = spread_server.getPlayerList();
+            }
         }
+    }
+
+    private boolean allReady(LinkedList<Player> pl) {
+        boolean ready = false;
+        int ctr = 0;
+        for (Player p : pl) {
+            // count how many players are ready
+            if (p.isReady()) {
+                ctr++;
+            }
+        }
+        if ((ctr == pl.size()) && (ctr >= 2)) {
+            ready = true;
+        }
+        return ready;
     }
 
     @Override

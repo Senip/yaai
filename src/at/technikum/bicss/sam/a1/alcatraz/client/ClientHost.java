@@ -402,5 +402,8 @@ public class ClientHost implements MoveListener {
         _actrz.closeWindow();
         _actrz.disposeWindow();
         _gui.setVisible(true);
+        
+        _playerlist = new LinkedList();
+        _gui.updatePlayerList(_playerlist);
     }
 }
