@@ -243,11 +243,11 @@ public class ClientHost implements MoveListener {
             Util.logRMIReg(_rmireg);
             _me.setName(p_name);
         } catch (NotBoundException e) {
-            l.error("Methods not bound to registry.\n" + e.getMessage(), e);
+            l.warn("Methods not bound to registry.\n" + e.getMessage(), e);
         } catch (RemoteException e) {
-            l.error("Unable to remove methods from registry.\n" + e.getMessage(), e);
+            l.warn("Unable to remove methods from registry.\n" + e.getMessage(), e);
         } catch (MalformedURLException e) {
-            l.error(e.getMessage(), e);
+            l.warn(e.getMessage(), e);
         }
 
         // Unregister Player at Server
