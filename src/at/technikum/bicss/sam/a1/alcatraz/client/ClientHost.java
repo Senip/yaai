@@ -271,7 +271,7 @@ public class ClientHost implements MoveListener {
 
     public boolean setReady(boolean state) {
         boolean success = false;
-        l.debug("Try to update state of " + _me.getName());
+        l.debug("Try to update ready state of " + _me.getName() + " to " + state);
         try {
             _server.setStatus(_me.getName(), state);
             success = true;
@@ -395,14 +395,16 @@ public class ClientHost implements MoveListener {
 
     @Override
     public void gameWon(at.falb.games.alcatraz.api.Player player) {
-        l.info(player.getName() + " has won the game");
-        Util.warnUser(_actrz.getWindow(), (player.getName() + " has won the game"));
+        l.info(player.getName() + " has won the game");        
 
         _actrz.closeWindow();
         _actrz.disposeWindow();
+        
         _gui.setVisible(true);
-
+        Util.warnUser(_gui, (player.getName() + " has won the game"));
+        
         _playerlist = new LinkedList();
         _gui.updatePlayerList(_playerlist);
+        _gui.reset();
     }
 }

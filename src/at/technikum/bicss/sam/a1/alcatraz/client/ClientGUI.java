@@ -25,6 +25,7 @@ public class ClientGUI extends javax.swing.JFrame {
 
     private ClientHost hosthandle = null;
     private boolean JBtn_Register_oldstate = false;
+    private Logger l = Logger.getLogger(Util.getClientRMIPath());
 
     /**
      * Creates new form ClientGUI
@@ -33,7 +34,7 @@ public class ClientGUI extends javax.swing.JFrame {
         initComponents();
         this.hosthandle = host;
         Logger.getRootLogger().addAppender(this.new StatusMessageAppender());
-        
+
         Util.centerFrame(this);
     }
 
@@ -152,7 +153,9 @@ public class ClientGUI extends javax.swing.JFrame {
     private void ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonActionPerformed
         if (evt.getActionCommand().toString().equals("register")) {
             if (jTxtFld_PName.getText().contains(" ")) {
-                Util.errorUser(this, "Player Name must not contain spaces");
+                l.error("Player Name must not contain spaces");
+            } else if (Util.isEmpty(jTxtFld_PName.getText())) {
+                l.error("Player Name must not be empty");
             } else {
                 jTxtFld_PName.setEditable(false);
                 jBtn_Register.setEnabled(false);
@@ -260,7 +263,7 @@ public class ClientGUI extends javax.swing.JFrame {
             String maxlen = new String(Integer.toString(Util.NAME_MAX_LENGTH));
             for (Player p : pl) {
                 Formatter fmt = new Formatter();
-                fmt.format("%-" + maxlen + "s %-20s ( @ %s : %d )",
+                fmt.format("%-" + maxlen + "s %-20s@%s:%d",
                         p.getName(), (p.isReady() ? "ready  " : "waiting"),
                         p.getAddress(), p.getPort());;
                 lm.addElement(fmt.toString());
@@ -280,6 +283,19 @@ public class ClientGUI extends javax.swing.JFrame {
         } else {
             jBtn_Register.setEnabled(JBtn_Register_oldstate);
         }
+    }
+
+    public void reset() {
+        jBtn_Register.setText("Register");
+        jBtn_Register.setActionCommand("register");
+        jBtn_Register.setEnabled(true);
+
+        jBtn_Ready.setText("Ready!");
+        jBtn_Ready.setActionCommand("ready");
+        jBtn_Ready.setEnabled(false);
+
+        jTxtFld_PName.setEditable(true);
+        
     }
 
     public class StatusMessageAppender extends AppenderSkeleton {
