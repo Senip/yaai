@@ -46,7 +46,7 @@ public class ServerHost {
 
         System.out.println("SERVER: Bind...");
         try {
-            IServer server = new ServerImpl();
+            IServer server = new ServerRMI();
             String rmi_uri = Util.buildRMIString(Util.getMyServerAddress(), 
                     Util.getServerRMIPort(), Util.getServerRMIPath());
             Naming.rebind(rmi_uri, server);

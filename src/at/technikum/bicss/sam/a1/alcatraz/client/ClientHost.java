@@ -55,7 +55,7 @@ public class ClientHost implements MoveListener {
         _me = new Player(null, 0, null, 0, false);
 
         try {
-            _client = new ClientImpl(this);
+            _client = new ClientRMI(this);
         } catch (RemoteException e) {
             l.error(e.getMessage(), e);
         }

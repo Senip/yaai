@@ -16,12 +16,12 @@ import java.util.LinkedList;
  *
  * @author Rudolf Galler <ic10b039@technikum-wien.at> [1010258039]
  */
-public class ServerImpl extends UnicastRemoteObject implements IServer {
+public class ServerRMI extends UnicastRemoteObject implements IServer {
 
     private PlayerList player_list;
     private SpreadServer spread_server;
 
-    public ServerImpl() throws RemoteException {
+    public ServerRMI() throws RemoteException {
         super();
         // create initial spread server instance
         spread_server = SpreadServer.getInstance();

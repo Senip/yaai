@@ -15,10 +15,10 @@ import java.util.LinkedList;
  *
  * @author Rudolf Galler <ic10b039@technikum-wien.at> [1010258039]
  */
-public class ClientImpl extends UnicastRemoteObject implements IClient {
+public class ClientRMI extends UnicastRemoteObject implements IClient {
     ClientHost hosthandle = null;
     
-    public ClientImpl(ClientHost host) throws RemoteException {
+    public ClientRMI(ClientHost host) throws RemoteException {
         super();
         hosthandle = host;
     }
