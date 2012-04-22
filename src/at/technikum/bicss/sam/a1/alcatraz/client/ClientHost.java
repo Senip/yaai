@@ -134,7 +134,7 @@ public class ClientHost implements MoveListener {
                 _gui.lockRegisterBtn(false);
                 break;
             } catch (NotBoundException e) { //thrown by Naming.lookup()
-                l.warn(Util.getServerRMIPath() + " seems to be not bound"
+                l.warn(Util.getServerRMIPath() + " seems to be not bound "
                         + _serveraddr + ":" + _serverport, e);
                 _serveraddr = null;
                 _server = null;

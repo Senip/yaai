@@ -123,18 +123,6 @@ public final class Util {
         return buildRMIString(host, port, path + "/" + player_name);
     }
 
-    public static Properties getProps() {
-        FileInputStream fileIn = null;
-
-        try {
-            fileIn = new FileInputStream(PROP_FILE);
-            props.load(fileIn);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return props;
-    }
-
     public static void logRMIReg(Registry rmireg)
             throws RemoteException, AccessException {
         StringBuilder sb = new StringBuilder();
@@ -155,9 +143,6 @@ public final class Util {
     }
 
     public static int getRandomPort() {
-        int port_min = 49152;
-        int port_max = 65535;
-
         Random random = new Random();
         int randomPort =
                 random.nextInt(CLIENT_RMIREG_PORT_MAX - CLIENT_RMIREG_PORT_MIN)
@@ -167,7 +152,7 @@ public final class Util {
     }
 
     public static void handleDebugMessage(String prefix, String message) {
-        System.out.print(prefix + ": " + message + "\n");
+        l.debug(prefix + ": " + message + "\n");
     }
 
     /**

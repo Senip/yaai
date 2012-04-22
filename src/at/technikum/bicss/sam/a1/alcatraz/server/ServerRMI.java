@@ -11,6 +11,7 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.LinkedList;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -20,52 +21,64 @@ public class ServerRMI extends UnicastRemoteObject implements IServer {
 
     private PlayerList player_list;
     private SpreadServer spread_server;
+    static private Logger l = Logger.getLogger(Util.getClientRMIPath());
 
     public ServerRMI() throws RemoteException {
         super();
         // create initial spread server instance
         spread_server = SpreadServer.getInstance();
         player_list = spread_server.getPlayerList();
-
     }
 
     private void broadcastPlayerList() {
         player_list.renumberIDs();
+        l.info("SERVER: Broadcasting Playerlist");
         for (Player p : player_list) {
             String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
                     Util.getClientRMIPath(), p.getName());
+            l.debug("SERVER: Send Playerlist to " + rmi_uri);
             try {
                 IClient c = (IClient) Naming.lookup(rmi_uri);
                 c.updatePlayerList(player_list.getLinkedList());
             } catch (Exception e) {
-                e.printStackTrace();
+                l.error("SERVER: Error while broadcasting playerlist:\n" + e.getMessage(), e);
             }
         }
     }
 
     @Override
     public synchronized void register(String name, String address, int port) throws RemoteException, AlcatrazServerException {
+
+        Player newPlayer = new Player(name, 0, address, port, false);
+        l.info("SERVER: New player wants to register:\n" + newPlayer.toString());
+
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
-                throw new AlcatrazServerException("Player with name " + name
+                AlcatrazServerException e =
+                        new AlcatrazServerException("Player with name " + name
                         + " already registered.\nName must be unique, "
                         + "please us a different name.");
+                l.warn(e.getMessage());
+                throw e;
             }
         }
         if (player_list.getLinkedList().size() >= 4) {
-            throw new AlcatrazServerException("This game is already full! "
+            AlcatrazServerException e =
+                    new AlcatrazServerException("This game is already full! "
                     + "(max. 4 Players)\nPlease try some time later.");
+            l.warn(e.getMessage());
+            throw e;
         }
 
-        Player newPlayer = new Player(name, 0, address, port, false);
         player_list.add(newPlayer);
 
-        System.out.println("\nSERVER: Registered new Player:\n" + newPlayer.toString());
+        l.info("SERVER: Registered new Player:\n" + newPlayer.toString());
         broadcastPlayerList();
     }
 
     @Override
     public synchronized void deregister(String name) throws RemoteException, AlcatrazServerException {
+        l.info("SERVER: Player wants to deregister" + name);
         Player p_remove = null;
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
@@ -74,16 +87,19 @@ public class ServerRMI extends UnicastRemoteObject implements IServer {
         }
 
         if (p_remove == null) {
-            throw new AlcatrazServerException("Playername " + name
-                    + " not found!");
+            AlcatrazServerException e = new AlcatrazServerException("Playername " + name + " not found!");
+            l.warn(e.getMessage());
+            throw e;
         } else {
             player_list.remove(p_remove);
+            l.info("SERVER: Deregistered Player " + name);
             broadcastPlayerList();
         }
     }
 
     @Override
     public synchronized void setStatus(String name, boolean ready) throws RemoteException, AlcatrazServerException {
+        l.info("Player " + name + " wants to set readystatus to " + ready);
         Player p_status = null;
         for (Player p : player_list) {
             if (p.getName().equals(name)) {
@@ -92,18 +108,18 @@ public class ServerRMI extends UnicastRemoteObject implements IServer {
         }
 
         if (p_status == null) {
-            throw new AlcatrazServerException("Playername " + name
-                    + " not found!");
+            AlcatrazServerException e = 
+                    new AlcatrazServerException("Playername " + name + " not found!");
+            l.warn(e.getMessage());
+            throw e;
         } else {
             p_status.setReady(ready);
             broadcastPlayerList();
             if (player_list.allReady()) {
                 spread_server.setPlayerList(new LinkedList());
                 player_list = spread_server.getPlayerList();
-                player_list.triggeraddObjectChangedEvent();
             }
             player_list.triggeraddObjectChangedEvent();
-
         }
     }
 
