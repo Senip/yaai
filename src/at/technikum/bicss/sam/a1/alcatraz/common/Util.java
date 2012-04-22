@@ -44,7 +44,7 @@ public final class Util {
     private Util() {
     }
 
-    public static void readProps() {
+    public static Properties readProps() {
         FileInputStream fileIn = null;
         props = new Properties();
 
@@ -52,43 +52,56 @@ public final class Util {
             fileIn = new FileInputStream(PROP_FILE);
             props.load(fileIn);
         } catch (Exception e) {
-            e.printStackTrace();
+            l.fatal("Property file " + PROP_FILE + " not found!\n" 
+                    + e.getMessage(), e);
+            System.exit(1);
         }
         PropertyConfigurator.configure(props);
+        return props;
     }
 
     public static int getConTimeOut() {
-        return Integer.valueOf(props.getProperty(CONNECTION_TIMEOUT));
+        return Integer.valueOf(getProp(CONNECTION_TIMEOUT));
     }
 
     public static String[] getServerAddressList() {
-        return props.getProperty(SERVER_ADDRESS_LIST).split(",");
+        return getProp(SERVER_ADDRESS_LIST).split(",");
     }
 
     public static int getClientRMIPort() {
-        return Integer.valueOf(props.getProperty(CLIENT_RMIREG_PORT));
+        return Integer.valueOf(getProp(CLIENT_RMIREG_PORT));
     }
 
     public static String getClientRMIPath() {
-        return props.getProperty(CLIENT_RMIREG_PATH);
+        return getProp(CLIENT_RMIREG_PATH);
     }
 
     // master server ip
     public static String getMyServerAddress() {
-        return props.getProperty(MY_SERVER_ADDRESS);
+        return getProp(MY_SERVER_ADDRESS);
     }
 
     public static int getServerRMIPort() {
-        return Integer.valueOf(props.getProperty(SERVER_RMIREG_PORT));
+        return Integer.valueOf(getProp(SERVER_RMIREG_PORT));
     }
 
     public static String getServerRMIPath() {
-        return props.getProperty(SERVER_RMIREG_PATH);
+        return getProp(SERVER_RMIREG_PATH);
     }
 
     // spread group name
     public static String getGroupName() {
-        return props.getProperty(GROUP_NAME);
+        return getProp(GROUP_NAME);
+    }
+
+    public static String getProp(String prop_name) {
+        String prop_val = props.getProperty(prop_name);
+        if (prop_val == null) {
+            l.fatal("Property " + prop_name + 
+                    " was not found in file " + PROP_FILE);
+            System.exit(1);
+        }
+        return prop_val;
     }
 
     /**
@@ -112,7 +125,6 @@ public final class Util {
 
     public static Properties getProps() {
         FileInputStream fileIn = null;
-        Properties props = new Properties();
 
         try {
             fileIn = new FileInputStream(PROP_FILE);

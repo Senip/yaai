@@ -43,8 +43,7 @@ public class ClientHost implements MoveListener {
     static private Logger l = null;
 
     public static void main(String[] args) {
-        Util.readProps();
-        PropertyConfigurator.configure(Util.getProps());
+        PropertyConfigurator.configure(Util.readProps());
         l = Logger.getLogger(Util.getClientRMIPath());
         new ClientHost();
     }
@@ -58,7 +57,7 @@ public class ClientHost implements MoveListener {
         try {
             _client = new ClientImpl(this);
         } catch (RemoteException e) {
-            l.error(e);
+            l.error(e.getMessage(), e);
         }
 
         contactServer();
@@ -144,7 +143,7 @@ public class ClientHost implements MoveListener {
                 _serveraddr = null;
                 _server = null;
             } catch (MalformedURLException e) { //thrown by Naming.lookup()
-                l.error(e);
+                l.error(e.getMessage(), e);
                 _serveraddr = null;
                 _server = null;
             } catch (IOException e) { //thrown by sock.connect()
@@ -209,9 +208,9 @@ public class ClientHost implements MoveListener {
             Util.logRMIReg(_rmireg);
             _me.setName(p_name);
         } catch (RemoteException e) {
-            l.error(e);
+            l.error("Unable to bind methods to registry.\n" + e.getMessage(), e);
         } catch (MalformedURLException e) {
-            l.error(e);
+            l.error(e.getMessage(), e);
         }
 
         // Register Player at Server
@@ -244,11 +243,11 @@ public class ClientHost implements MoveListener {
             Util.logRMIReg(_rmireg);
             _me.setName(p_name);
         } catch (NotBoundException e) {
-            l.error(e);
+            l.error("Methods not bound to registry.\n" + e.getMessage(), e);
         } catch (RemoteException e) {
-            l.error(e);
+            l.error("Unable to remove methods from registry.\n" + e.getMessage(), e);
         } catch (MalformedURLException e) {
-            l.error(e);
+            l.error(e.getMessage(), e);
         }
 
         // Unregister Player at Server
@@ -325,7 +324,7 @@ public class ClientHost implements MoveListener {
         for (Player p : _playerlist) {
             _actrz.getPlayer(p.getId()).setName(p.getName());
         }
-        retreivePlayerProxys();        
+        retreivePlayerProxys();
 
         _gui.setVisible(false);
         /*
@@ -342,7 +341,7 @@ public class ClientHost implements MoveListener {
         _actrz.start();
     }
 
-    private void retreivePlayerProxys() {        
+    private void retreivePlayerProxys() {
         for (Player p : _playerlist) {
             if (p.getName().equals(_me.getName())) {
                 break;
@@ -360,7 +359,7 @@ public class ClientHost implements MoveListener {
             } catch (RemoteException e) {
                 l.warn(p.getAddress() + ":" + p.getPort(), e);
             } catch (MalformedURLException e) {
-                l.error(e);
+                l.error(e.getMessage(), e);
             }
         }
     }
@@ -402,7 +401,7 @@ public class ClientHost implements MoveListener {
         _actrz.closeWindow();
         _actrz.disposeWindow();
         _gui.setVisible(true);
-        
+
         _playerlist = new LinkedList();
         _gui.updatePlayerList(_playerlist);
     }
