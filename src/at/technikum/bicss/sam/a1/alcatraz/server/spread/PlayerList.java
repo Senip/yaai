@@ -28,7 +28,7 @@ public class PlayerList implements Serializable, Iterable<Player> {
         event_listeners.add(l);
     }
 
-    public synchronized void triggeraddObjectChangedEvent() {
+    public synchronized void triggerObjectChangedEvent() {
         ObjectChangedEvent event = new ObjectChangedEvent(this);
         Iterator listeners = event_listeners.iterator();
         while (listeners.hasNext()) {
@@ -45,14 +45,14 @@ public class PlayerList implements Serializable, Iterable<Player> {
     public void add(Player p) {
         player_list.add(p);
         // fire changed event
-        triggeraddObjectChangedEvent();
+        triggerObjectChangedEvent();
     }
 
     // wrapper for remove on linkedlist
     public void remove(Player p) {
         player_list.remove(p);
         // fire changed event
-        triggeraddObjectChangedEvent();
+        triggerObjectChangedEvent();
     }
 
     public LinkedList<Player> getLinkedList() {

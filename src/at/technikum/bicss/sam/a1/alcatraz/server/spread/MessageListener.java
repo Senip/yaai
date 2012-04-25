@@ -76,10 +76,10 @@ public class MessageListener implements AdvancedMessageListener {
         Util.handleDebugMessage("SPREAD", "Membership Message recieved");
         Util.handleDebugMessage("SPREAD", "Members: " + msi.getMembers());
         if(msi.getMembers() != null){
-        Util.handleDebugMessage("SPREAD", "Group Members: "
-                + msi.getMembers().length);
-        
-        Util.handleDebugMessage("SPREAD", "Group ID: " + msi.getGroupID());
+            Util.handleDebugMessage("SPREAD", "Group Members: "
+                    + msi.getMembers().length);
+
+            Util.handleDebugMessage("SPREAD", "Group ID: " + msi.getGroupID());
         }
         // there is a join
         if (msi.isCausedByJoin()) {
@@ -87,7 +87,7 @@ public class MessageListener implements AdvancedMessageListener {
             Util.handleDebugMessage("SPREAD", "Was caused by: JOIN");
             Util.handleDebugMessage("SPREAD", "Joined Member: " + msi.getJoined());
 
-            System.out.print("\n");
+            //System.out.print("\n");
 
             // if this is the first server arriving in that group 
             if (msi.getMembers().length == 1) {
@@ -114,8 +114,6 @@ public class MessageListener implements AdvancedMessageListener {
             Util.handleDebugMessage("SPREAD", "Left Member: " + msi.getLeft());
 
             spread_server.removeServer(msi.getLeft().toString());
-
-
         }
 
         // disconnect
@@ -124,15 +122,12 @@ public class MessageListener implements AdvancedMessageListener {
             Util.handleDebugMessage("SPREAD", "Disconnected Member"
                     + msi.getDisconnected());
             spread_server.removeServer(msi.getDisconnected().toString());
-
-
-
-
         }
         // network error
         if (msi.isCausedByNetwork()) {
 
             Util.handleDebugMessage("SPREAD", "Was caused by: NETWORK ERROR");
+            System.exit(1);
         }
     }
 }

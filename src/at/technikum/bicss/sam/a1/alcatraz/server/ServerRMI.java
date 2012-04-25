@@ -119,7 +119,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer {
                 spread_server.setPlayerList(new LinkedList());
                 player_list = spread_server.getPlayerList();
             }
-            player_list.triggeraddObjectChangedEvent();
+            player_list.triggerObjectChangedEvent();
         }
     }
 
