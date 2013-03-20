@@ -1,1 +1,1 @@
-start java -cp dist/Alcatraz_A1.jar at.technikum.bicss.sam.a1.alcatraz.client.ClientHost
+start java -cp dist/Alcatraz_B6.jar at.technikum.bicss.sam.b6.alcatraz.client.ClientHost

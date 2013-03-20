@@ -1,14 +1,14 @@
-1. check whether \spread\spread_private.conf matches your current network setup
+1. Update \spread\spread_private.conf to matche your network setup
 
-2. add address of your local server to attribute 'my_server_host_address' in file alcatraz.props
+3. Add the address of all available servers to the attribute 'server_address_list'    in file alcatraz.props
 
-3. add address of all available servers to attribute 'server_address_list' in file alcatraz.props
+2. Add the address of your local    server  to the attribute 'my_server_host_address' in file alcatraz.props
 
-4. start Spread-Daemon by invoking spread.cmd
+4. Start Spread-Daemon (spread.cmd)
 
-5. run server.cmd
+5. Run server.cmd
 
-6. run client.cmd
+6. Run client.cmd
 
 
 

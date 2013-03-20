@@ -1,4 +1,8 @@
-package at.technikum.bicss.sam.a1.alcatraz.common;
+/*
+ *  yaai - Yet Another Alcatraz Implementation 
+ *  BICSS-B6 2013
+ */
+ package at.technikum.bicss.sam.b6.alcatraz.common;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -21,30 +25,31 @@ public final class Util {
      * General Properties
      */
     static final private String CONNECTION_TIMEOUT = "connection_timeout_ms";
-    static final public int NAME_MAX_LENGTH = 30;
+    static final public int NAME_MAX_LENGTH        = 30;
     /**
      * Client Properties
      */
-    static final public String SERVER_ADDRESS_LIST = "server_address_list";
-    static final public String CLIENT_RMIREG_PORT = "client_rmireg_port";
-    static final public String CLIENT_RMIREG_PATH = "client_rmireg_path";
+    static final public String SERVER_ADDRESS_LIST  = "server_address_list";
+    static final public String CLIENT_RMIREG_PORT   = "client_rmireg_port";
+    static final public String CLIENT_RMIREG_PATH   = "client_rmireg_path";
     static final private int CLIENT_RMIREG_PORT_MIN = 49152;
     static final private int CLIENT_RMIREG_PORT_MAX = 65535;
     /**
      * Server Properties
      */
-    static final public String MY_SERVER_ADDRESS = "my_server_host_address";
+    static final public String MY_SERVER_ADDRESS  = "my_server_host_address";
     static final public String SERVER_RMIREG_PORT = "server_rmireg_port";
     static final public String SERVER_RMIREG_PATH = "server_rmireg_path";
-    static final public String GROUP_NAME = "spread_group_name";
-    private static Properties props = null;
-    private static Logger l = Logger.getRootLogger();
+    static final public String GROUP_NAME         = "spread_group_name";
+    private static Properties props               = null;
+    private static Logger l                       = Logger.getRootLogger();
 
     //prohibit instances of class Util
     private Util() {
     }
 
-    public static Properties readProps() {
+    public static Properties readProps() 
+    {
         FileInputStream fileIn = null;
         props = new Properties();
 
@@ -112,7 +117,8 @@ public final class Util {
      * @param path namespace to object
      * @return
      */
-    public static String buildRMIString(String host, int port, String path) {
+    public static String buildRMIString(String host, int port, String path) 
+    {
         StringBuilder sb = new StringBuilder("rmi://");
         sb.append(host).append(":").append(port);
         sb.append("/").append(path).append("/");
@@ -124,17 +130,21 @@ public final class Util {
     }
 
     public static void logRMIReg(Registry rmireg)
-            throws RemoteException, AccessException {
+            throws RemoteException, AccessException 
+    {
         StringBuilder sb = new StringBuilder();
         sb.append("Objects available on ");
         sb.append(rmireg.toString()).append("\n");
-        for (String s : rmireg.list()) {
+        
+        for (String s : rmireg.list()) 
+        {
             sb.append(s).append("\n");
         }
         l.debug(sb.toString());
     }
 
-    public static void centerFrame(JFrame frm) {
+    public static void centerFrame(JFrame frm) 
+    {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         // Center position of frame
         int top = (screenSize.height - frm.getHeight()) / 2;
@@ -142,7 +152,8 @@ public final class Util {
         frm.setLocation(left, top);
     }
 
-    public static int getRandomPort() {
+    public static int getRandomPort() 
+    {
         Random random = new Random();
         int randomPort =
                 random.nextInt(CLIENT_RMIREG_PORT_MAX - CLIENT_RMIREG_PORT_MIN)
@@ -151,7 +162,8 @@ public final class Util {
         return randomPort;
     }
 
-    public static void handleDebugMessage(String prefix, String message) {
+    public static void handleDebugMessage(String prefix, String message) 
+    {
         l.debug(prefix + ": " + message + "\n");
     }
 
@@ -162,7 +174,8 @@ public final class Util {
      * @param value
      * @return true if string is empty, otherwise false
      */
-    public static boolean isEmpty(String value) {
+    public static boolean isEmpty(String value) 
+    {
         if (value == null || "".equals(value)) {
             return true;
         }
@@ -175,7 +188,8 @@ public final class Util {
      * @param frm current frame.
      * @param message text to be displayed
      */
-    public static void errorUser(JFrame frm, String message) {
+    public static void errorUser(JFrame frm, String message) 
+    {
         //l.finer("Display error message to user");
         JOptionPane.showMessageDialog(frm, message,
                 "Error", JOptionPane.ERROR_MESSAGE);
@@ -187,7 +201,8 @@ public final class Util {
      * @param frm current frame.
      * @param message text to be displayed
      */
-    public static void warnUser(JFrame frm, String message) {
+    public static void warnUser(JFrame frm, String message) 
+    {
         //l.finer("Display warning message to user");
         JOptionPane.showMessageDialog(frm, message,
                 "Warning", JOptionPane.WARNING_MESSAGE);
