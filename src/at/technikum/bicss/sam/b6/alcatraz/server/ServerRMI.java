@@ -24,31 +24,45 @@ import org.apache.log4j.Logger;
 public class ServerRMI extends UnicastRemoteObject implements IServer 
 {
 
-    private PlayerList player_list;
-    private SpreadServer spread_server;
+    private PlayerList    player_list;
+    private SpreadServer  spread_server;
     static private Logger l = Logger.getLogger(Util.getClientRMIPath());
 
-    public ServerRMI() throws RemoteException {
+    public ServerRMI() throws RemoteException 
+    {
         super();
         // create initial spread server instance
         spread_server = SpreadServer.getInstance();
-        player_list = spread_server.getPlayerList();
+        player_list   = spread_server.getPlayerList();
     }
 
-    private void broadcastPlayerList() {
+    private void broadcastPlayerList() 
+    {
         player_list.renumberIDs();
         l.info("SERVER: Broadcasting Playerlist");
-        for (Player p : player_list) {
-            String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
-                    Util.getClientRMIPath(), p.getName());
-            l.debug("SERVER: Send Playerlist to " + rmi_uri);
-            try {
-                IClient c = (IClient) Naming.lookup(rmi_uri);
-                c.updatePlayerList(player_list.getLinkedList());
-            } catch (Exception e) {
-                l.error("SERVER: Error while broadcasting playerlist:\n" + e.getMessage(), e);
+    
+        boolean success = true;
+        
+        do
+        {
+
+            for (Player p : player_list) 
+            {
+                String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
+                        Util.getClientRMIPath(), p.getName());
+                l.debug("SERVER: Send Playerlist to " + rmi_uri);
+                try {
+                    IClient c = (IClient) Naming.lookup(rmi_uri);
+                    c.updatePlayerList(player_list.getLinkedList());
+                } catch (Exception e) {
+                    l.error("SERVER: Error while broadcasting playerlist:\n" + e.getMessage(), e);
+                    l.info("SERVER: Remove Player " + p.getName() + " from List\n");
+                    
+                    /* to be implemented */
+                }
             }
         }
+        while(!success);
     }
 
     @Override

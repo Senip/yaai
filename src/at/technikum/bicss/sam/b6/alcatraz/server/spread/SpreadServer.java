@@ -26,18 +26,21 @@ public class SpreadServer implements ObjectChangedListner
 {
     // SpreadServer 
     // singelton instance
-
     private static SpreadServer _spread_instance = null;
+    
     // spread configuration 
     private String spread_group_name;
     private String server_address;
+    
     // Master Server 
     private Boolean i_am_master_server = false;
     private String group_master_server;
     private String group_master_server_address;
     private LinkedList server_list     = new LinkedList();
+    
     // keep track of playerlist to send it to new group members
     private PlayerList player_list     = new PlayerList();
+    
     // connection and listner   
     SpreadConnection connection        = new SpreadConnection();
     MessageListener listener           = new MessageListener(this);
@@ -49,9 +52,12 @@ public class SpreadServer implements ObjectChangedListner
 
         if (_spread_instance == null) 
         {
-            try {
+            try 
+            {
                 _spread_instance = new SpreadServer();
-            } catch (NullPointerException ex) {
+            } 
+            catch (NullPointerException ex) 
+            {
                 Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -63,12 +69,13 @@ public class SpreadServer implements ObjectChangedListner
     {
         Util.readProps();
         spread_group_name = Util.getGroupName();
-        server_address = "localhost";
+        server_address    = "localhost";
     
-    // set listener
+        // set listener
         player_list.addObjectChangedListner(this);
 
-        try {
+        try 
+        {
             // connect: address, port (0 = default 4803), privatename, .?., groupmessages
             connection.connect(InetAddress.getByName(server_address), 0,
                     "alcatraz", false, true);
@@ -77,12 +84,17 @@ public class SpreadServer implements ObjectChangedListner
             SpreadGroup group = new SpreadGroup();
             group.join(connection, spread_group_name);
 
-        } catch (SpreadException ex) {
+        } catch (SpreadException ex) 
+        {
             System.out.print(ex);
             Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnknownHostException ex) {
+        } 
+        catch (UnknownHostException ex) 
+        {
             Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NullPointerException ex) {
+        } 
+        catch (NullPointerException ex) 
+        {
             Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -162,7 +174,8 @@ public class SpreadServer implements ObjectChangedListner
     // Spread Group Messages
     private void multicastMessage(AlcatrazMessage a_msg) 
     {
-        try {
+        try 
+        {
             SpreadMessage msg = new SpreadMessage();
             msg.setObject(a_msg);
             msg.addGroup(spread_group_name);
@@ -173,10 +186,14 @@ public class SpreadServer implements ObjectChangedListner
             Util.handleDebugMessage("SPREAD", "multicast message: "
                     + a_msg.getHeader() + "\n" + a_msg.getBody());
 
-        } catch (SpreadException ex) {
+        } 
+        catch (SpreadException ex) 
+        {
             Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE,
                     null, ex);
-        } catch (NullPointerException ex) {
+        } 
+        catch (NullPointerException ex) 
+        {
             Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE,
                     null, ex);
         }
@@ -194,20 +211,17 @@ public class SpreadServer implements ObjectChangedListner
 
         multicastMessage(new AlcatrazMessage(MessageHeader.SERVER_LIST,
                 server_list));
-
     }
 
     void multicastMasterServerInformation() {
 
         multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER,
                 group_master_server));
-
     }
 
     void multicastMasterHostAddress() {
         multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER_ADDRESS,
                 group_master_server_address));
-
     }
 
     @Override

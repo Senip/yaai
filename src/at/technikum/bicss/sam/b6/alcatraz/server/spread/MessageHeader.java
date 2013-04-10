@@ -8,8 +8,10 @@ package at.technikum.bicss.sam.b6.alcatraz.server.spread;
  *
  * @author
  */
-public enum MessageHeader {
+public enum MessageHeader 
+{
     PLAYER_LIST, 
     MASTER_SERVER, 
     SERVER_LIST, 
-    MASTER_SERVER_ADDRESS}
+    MASTER_SERVER_ADDRESS
+}

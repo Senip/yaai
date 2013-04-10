@@ -17,4 +17,5 @@ public interface IServer extends Remote {
     public void   deregister(String name)                           throws RemoteException, AlcatrazServerException;
     public void   setStatus (String name, boolean ready)            throws RemoteException, AlcatrazServerException;
     public String getMasterServer()                                 throws RemoteException;
+    
 }

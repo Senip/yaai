@@ -16,14 +16,16 @@ import spread.MembershipInfo;
 import spread.SpreadException;
 import spread.SpreadMessage;
 
-public class MessageListener implements AdvancedMessageListener {
+public class MessageListener implements AdvancedMessageListener 
+{
 
     SpreadServer spread_server;
 
     /**
      * Constructor
      */
-    public MessageListener(SpreadServer sp) {
+    public MessageListener(SpreadServer sp) 
+    {
         super();
         spread_server = sp;
     }
@@ -34,7 +36,8 @@ public class MessageListener implements AdvancedMessageListener {
      * @param message
      */
     @Override
-    public void regularMessageReceived(SpreadMessage message) {
+    public void regularMessageReceived(SpreadMessage message) 
+    {
         try {
             AlcatrazMessage obj = (AlcatrazMessage) message.getObject();
 

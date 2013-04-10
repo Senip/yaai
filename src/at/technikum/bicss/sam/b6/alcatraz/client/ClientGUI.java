@@ -31,7 +31,8 @@ public class ClientGUI extends javax.swing.JFrame
     /**
      * Creates new form ClientGUI
      */
-    public ClientGUI(ClientHost host) {
+    public ClientGUI(ClientHost host) 
+    {
         initComponents();
         this.hosthandle = host;
         Logger.getRootLogger().addAppender(this.new StatusMessageAppender());
@@ -62,7 +63,11 @@ public class ClientGUI extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Alcatraz");
+        setMaximumSize(new java.awt.Dimension(326, 341));
+        setMinimumSize(new java.awt.Dimension(326, 341));
         setResizable(false);
+
+        jTxtFld_PName.setMaximumSize(new java.awt.Dimension(6, 20));
 
         jLbl_PName.setText("Playername:");
 
@@ -88,6 +93,8 @@ public class ClientGUI extends javax.swing.JFrame
         });
 
         jPnl_Status.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jPnl_Status.setMaximumSize(new java.awt.Dimension(60, 29));
+        jPnl_Status.setMinimumSize(new java.awt.Dimension(60, 29));
         jPnl_Status.setOpaque(false);
 
         jLbl_StatusTxt.setText("Statusbar");
@@ -131,7 +138,7 @@ public class ClientGUI extends javax.swing.JFrame
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLbl_PName)
                         .addGap(13, 13, 13)
-                        .addComponent(jTxtFld_PName))
+                        .addComponent(jTxtFld_PName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLbl_PList)
