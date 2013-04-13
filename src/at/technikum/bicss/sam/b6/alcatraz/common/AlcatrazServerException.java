@@ -11,16 +11,14 @@ package at.technikum.bicss.sam.b6.alcatraz.common;
 public class AlcatrazServerException extends Exception {
 
     /**
-     * Creates a new instance of
-     * <code>ServerException</code> without detail message.
+     * Alcatraz Server Exception
      */
     public AlcatrazServerException() {
     }
 
-    /**
-     * Constructs an instance of
-     * <code>ServerException</code> with the specified detail message.
-     *
+    /**     
+     * Alcatraz Server Exception
+     * 
      * @param msg the detail message.
      */
     public AlcatrazServerException(String msg) {

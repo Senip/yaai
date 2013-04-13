@@ -21,11 +21,11 @@ public class Move implements Serializable
 
     public Move(Player player, Prisoner prisoner, int rowOrCol, int row, int col) 
     {
-        this.player = player;
+        this.player   = player;
         this.prisoner = prisoner;
         this.rowOrCol = rowOrCol;
-        this.row = row;
-        this.col = col;
+        this.row      = row;
+        this.col      = col;
     }
 
     public int getCol() {

@@ -11,6 +11,7 @@ package at.technikum.bicss.sam.b6.alcatraz.server.spread;
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import java.util.LinkedList;
+import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
 import spread.MembershipInfo;
 import spread.SpreadException;
@@ -18,8 +19,11 @@ import spread.SpreadMessage;
 
 public class MessageListener implements AdvancedMessageListener 
 {
-
-    SpreadServer spread_server;
+    // Spread Server
+    private SpreadServer spreadServer;
+    
+    // Logger    
+    private static Logger l = Util.getLogger();
 
     /**
      * Constructor
@@ -27,7 +31,7 @@ public class MessageListener implements AdvancedMessageListener
     public MessageListener(SpreadServer sp) 
     {
         super();
-        spread_server = sp;
+        spreadServer = sp;
     }
 
     /**
@@ -38,98 +42,104 @@ public class MessageListener implements AdvancedMessageListener
     @Override
     public void regularMessageReceived(SpreadMessage message) 
     {
-        try {
+        try 
+        {
             AlcatrazMessage obj = (AlcatrazMessage) message.getObject();
 
-            Util.handleDebugMessage("SPREAD", "got message: " + obj.getHeader());
+            l.debug("SPREAD: got message: " + obj.getHeader());
 
-            if (!spread_server.isMasterServer()) {
+            if (!spreadServer.isMasterServer()) 
+            {
                 // update Master Server
-                if (obj.getHeader() == MessageHeader.MASTER_SERVER) {
-
-                    Util.handleDebugMessage("SPREAD", "Master Server has changed: "
-                            + obj.getBody());
-                    spread_server.setMasterServer((String) obj.getBody());
-
-                } else if (obj.getHeader() == MessageHeader.PLAYER_LIST) {
-
-                    Util.handleDebugMessage("SPREAD", "PlayerList update: "
-                            + obj.getBody());
-
-                    spread_server.setPlayerList((LinkedList<Player>) obj.getBody());
-                } else if (obj.getHeader() == MessageHeader.SERVER_LIST) {
-                    Util.handleDebugMessage("SPREAD", "ServerList update: "
-                            + obj.getBody() + "\n");
-                    spread_server.updateMemberServer((LinkedList) obj.getBody());
-                } else if (obj.getHeader() == MessageHeader.MASTER_SERVER_ADDRESS) {
-                    Util.handleDebugMessage("SPREAD", "Master server address update: "
-                            + obj.getBody() + "\n");
-                    spread_server.setMasterServerAddress((String) obj.getBody());
+                if      (obj.getHeader() == MessageHeader.MASTER_SERVER) 
+                {
+                    l.debug("SPREAD: Master Server has changed: "    + obj.getBody());
+                    spreadServer.setMasterServer((String) obj.getBody());
+                } 
+                else if (obj.getHeader() == MessageHeader.PLAYER_LIST) 
+                {
+                    l.debug("SPREAD: PlayerList update: "            + obj.getBody());
+                    spreadServer.setPlayerList((LinkedList<Player>) obj.getBody());
+                } 
+                else if (obj.getHeader() == MessageHeader.SERVER_LIST) 
+                {
+                    l.debug("SPREAD: ServerList update: "            + obj.getBody() + "\n");
+                    spreadServer.updateMemberServer((LinkedList) obj.getBody());
+                } 
+                else if (obj.getHeader() == MessageHeader.MASTER_SERVER_ADDRESS) 
+                {
+                    l.debug("SPREAD: Master server address update: " + obj.getBody() + "\n");
+                    spreadServer.setMasterServerAddress((String) obj.getBody());
                 }
             }
-        } catch (SpreadException spreadException) {
-            System.out.print(spreadException);
+        } 
+        catch (SpreadException e) 
+        {
+            l.fatal("Spread Exception " + e.getMessage());
+            System.exit(1);
         }
     }
 
     @Override
-    public void membershipMessageReceived(SpreadMessage message) {
+    public void membershipMessageReceived(SpreadMessage message) 
+    {
         MembershipInfo msi = message.getMembershipInfo();
 
-        Util.handleDebugMessage("SPREAD", "Membership Message recieved");
-        Util.handleDebugMessage("SPREAD", "Members: " + msi.getMembers());
-        if(msi.getMembers() != null){
-            Util.handleDebugMessage("SPREAD", "Group Members: "
-                    + msi.getMembers().length);
-
-            Util.handleDebugMessage("SPREAD", "Group ID: " + msi.getGroupID());
+        l.debug("SPREAD: Membership Message recieved");
+        l.debug("SPREAD: Members: " + msi.getMembers());
+        if(msi.getMembers() != null)
+        {
+            l.debug("SPREAD: Group Members: " + msi.getMembers().length);
+            l.debug("SPREAD: Group ID: "      + msi.getGroupID());
         }
         // there is a join
-        if (msi.isCausedByJoin()) {
-
-            Util.handleDebugMessage("SPREAD", "Was caused by: JOIN");
-            Util.handleDebugMessage("SPREAD", "Joined Member: " + msi.getJoined());
-
-            //System.out.print("\n");
+        if (msi.isCausedByJoin()) 
+        {
+            l.debug("SPREAD: Was caused by: JOIN");
+            l.debug("SPREAD: Joined Member: " + msi.getJoined());
 
             // if this is the first server arriving in that group 
-            if (msi.getMembers().length == 1) {
+            if (msi.getMembers().length == 1) 
+            {
                 // first server => this is the master
-                spread_server.addMemberServer(spread_server.getPrivateGroup().toString());
-                spread_server.setMasterServer(spread_server.getPrivateGroup().toString());
+                spreadServer.addMemberServer(spreadServer.getPrivateGroup().toString());
+                spreadServer.setMasterServer(spreadServer.getPrivateGroup().toString());
 
-
-                Util.handleDebugMessage("SPREAD", "This node is the Master Server: "
-                        + spread_server.getPrivateGroup().toString());
-
-            } else if (spread_server.isMasterServer()) {
-                spread_server.addMemberServer(msi.getJoined().toString());
-                spread_server.multicastServerList();
-                spread_server.multicastMasterServerInformation();
-                spread_server.multicastMasterHostAddress();
-                spread_server.multicastPlayerList();
+                l.debug("SPREAD: This node is the Master Server: \n"
+                        + spreadServer.getPrivateGroup().toString());
+            } 
+            else if (spreadServer.isMasterServer()) 
+            {
+                spreadServer.addMemberServer(msi.getJoined().toString());
+                spreadServer.multicastServerList();
+                spreadServer.multicastMasterServerInformation();
+                spreadServer.multicastMasterHostAddress();
+                spreadServer.multicastPlayerList();
             }
         }
 
         // someone leaves
-        if (msi.isCausedByLeave()) {
-            Util.handleDebugMessage("SPREAD", "Was caused by: LEAVE");
-            Util.handleDebugMessage("SPREAD", "Left Member: " + msi.getLeft());
+        if (msi.isCausedByLeave()) 
+        {
+            l.debug("SPREAD: Was caused by: LEAVE");
+            l.debug("SPREAD: Left Member: " + msi.getLeft());
 
-            spread_server.removeServer(msi.getLeft().toString());
+            spreadServer.removeServer(msi.getLeft().toString());
         }
 
         // disconnect
-        if (msi.isCausedByDisconnect()) {
-            Util.handleDebugMessage("SPREAD", "Was caused by: DISCONNECT");
-            Util.handleDebugMessage("SPREAD", "Disconnected Member"
+        if (msi.isCausedByDisconnect()) 
+        {
+            l.debug("SPREAD: Was caused by: DISCONNECT");
+            l.debug("SPREAD: Disconnected Member"
                     + msi.getDisconnected());
-            spread_server.removeServer(msi.getDisconnected().toString());
+            spreadServer.removeServer(msi.getDisconnected().toString());
         }
+        
         // network error
-        if (msi.isCausedByNetwork()) {
-
-            Util.handleDebugMessage("SPREAD", "Was caused by: NETWORK ERROR");
+        if (msi.isCausedByNetwork()) 
+        {
+            l.debug("SPREAD: Was caused by: NETWORK ERROR");
             System.exit(1);
         }
     }

@@ -10,11 +10,10 @@ import java.util.EventObject;
  *
  * @author 
  */
-public class ObjectChangedEvent extends EventObject {
-    
-    public ObjectChangedEvent(Object source) {
+public class ObjectChangedEvent extends EventObject 
+{    
+    public ObjectChangedEvent(Object source) 
+    {
         super(source);
-
     }
-
 }

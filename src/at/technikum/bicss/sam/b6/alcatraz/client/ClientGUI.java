@@ -6,6 +6,7 @@ package at.technikum.bicss.sam.b6.alcatraz.client;
 
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
+import at.technikum.bicss.sam.b6.alcatraz.server.spread.PlayerList;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -24,9 +25,9 @@ import org.apache.log4j.spi.LoggingEvent;
 public class ClientGUI extends javax.swing.JFrame 
 {
 
-    private ClientHost hosthandle = null;
-    private boolean JBtn_Register_oldstate = false;
-    private Logger l = Logger.getLogger(Util.getClientRMIPath());
+    private ClientHost hosthandle             = null;
+    private boolean    JBtn_Register_oldstate = false;
+    private Logger     l                      = Logger.getLogger(Util.getClientRMIPath());
 
     /**
      * Creates new form ClientGUI
@@ -79,6 +80,7 @@ public class ClientGUI extends javax.swing.JFrame
             }
         });
 
+        jLst_PlayerList.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
         jScrlPne.setViewportView(jLst_PlayerList);
 
         jLbl_PList.setText("Playerlist");
@@ -104,16 +106,14 @@ public class ClientGUI extends javax.swing.JFrame
         jPnl_StatusLayout.setHorizontalGroup(
             jPnl_StatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPnl_StatusLayout.createSequentialGroup()
-                .addGap(3, 3, 3)
                 .addComponent(jLbl_StatusTxt)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         jPnl_StatusLayout.setVerticalGroup(
             jPnl_StatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPnl_StatusLayout.createSequentialGroup()
-                .addGap(4, 4, 4)
                 .addComponent(jLbl_StatusTxt)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jLabel1.setFont(new java.awt.Font("Calibri", 0, 36)); // NOI18N
@@ -282,35 +282,65 @@ public class ClientGUI extends javax.swing.JFrame
     private javax.swing.JTextField jTxtFld_PName;
     // End of variables declaration//GEN-END:variables
 
-    public void updatePlayerList(LinkedList<Player> pl) {
+    /**
+     * 
+     * Update the displayed player list
+     * 
+     * @param pl Player List
+     */
+    public void updatePlayerList(LinkedList<Player> pl) 
+    {
         DefaultListModel lm = new DefaultListModel();
-        if (pl != null) {
+        
+        if (pl != null) 
+        {            
             String maxlen = new String(Integer.toString(Util.NAME_MAX_LENGTH));
-            for (Player p : pl) {
+                        
+            for (Player p : pl) 
+            {
                 Formatter fmt = new Formatter();
-                fmt.format("%-" + maxlen + "s %-20s@%s:%d",
-                        p.getName(), (p.isReady() ? "ready  " : "waiting"),
-                        p.getAddress(), p.getPort());;
+                                
+                fmt.format("%-" + maxlen + "s %-7s %15s:%-5d",
+                        p.getName(), (p.isReady() ? "ready" : "waiting"),
+                        p.getAddress(), p.getPort());
                 lm.addElement(fmt.toString());
             }
         }
         this.jLst_PlayerList.setModel(lm);
     }
 
+    /**
+     * 
+     * @param text Status Text
+     */
     public void setStatusText(String text) {
         jLbl_StatusTxt.setText(text);
     }
 
-    public void lockRegisterBtn(boolean lock) {
-        if (lock == true) {
+    /**
+     * 
+     * (Un-)lock the register Button
+     * 
+     * @param lock if th button is locked
+     */
+    public void lockRegisterBtn(boolean lock) 
+    {
+        if (lock == true) 
+        {
             JBtn_Register_oldstate = jBtn_Register.isEnabled();
             jBtn_Register.setEnabled(false);
-        } else {
+        } 
+        else 
+        {
             jBtn_Register.setEnabled(JBtn_Register_oldstate);
         }
     }
 
-    public void reset() {
+    /**
+     * Reset the GUI
+     */
+    public void reset() 
+    {
         jBtn_Register.setText("Register");
         jBtn_Register.setActionCommand("register");
         jBtn_Register.setEnabled(true);
@@ -323,19 +353,30 @@ public class ClientGUI extends javax.swing.JFrame
         
     }
 
-    public class StatusMessageAppender extends AppenderSkeleton {
-
+    /**
+     *  Display logging Events
+     */
+    public class StatusMessageAppender extends AppenderSkeleton 
+    {
         @Override
-        protected void append(LoggingEvent event) {
-            if (event.getLevel().equals(Level.INFO)) {
+        protected void append(LoggingEvent event) 
+        {
+            if (event.getLevel().equals(Level.INFO)) 
+            {
                 jLbl_StatusTxt.setForeground(Color.BLACK);
                 jLbl_StatusTxt.setText(event.getMessage().toString());
-            } else if (event.getLevel().equals(Level.WARN)) {
+            } 
+            else if (event.getLevel().equals(Level.WARN)) 
+            {
                 jLbl_StatusTxt.setForeground(Color.RED);
                 jLbl_StatusTxt.setText(event.getMessage().toString());
-            } else if (event.getLevel().equals(Level.ERROR)) {
+            } 
+            else if (event.getLevel().equals(Level.ERROR)) 
+            {
                 Util.warnUser(ClientGUI.this, event.getMessage().toString());
-            } else if (event.getLevel().equals(Level.FATAL)) {
+            } 
+            else if (event.getLevel().equals(Level.FATAL)) 
+            {
                 Util.errorUser(ClientGUI.this, event.getMessage().toString());
             }
         }

@@ -12,51 +12,83 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.util.Properties;
 import java.util.Random;
+import java.util.UUID;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-public final class Util {
+public final class Util 
+{
+    private  final static String PROP_FILE = "alcatraz.props";
+    
+    //General Properties
+    private final static String CONNECTION_TIMEOUT = "connection_timeout_ms";
+    public  final static int    NAME_MAX_LENGTH    = 13;
+    public  final static int    NUM_MAX_PLAYER     = 4;
+    
+    // Client Properties
+    public  final static String SERVER_ADDRESS_LIST     = "server_address_list";
+    public  final static String CLIENT_RMIREG_PORT      = "client_rmireg_port";
+    public  final static String CLIENT_RMIREG_PATH      = "client_rmireg_path";
+    private final static int    CLIENT_RMIREG_PORT_MIN  = 49152;
+    private final static int    CLIENT_RMIREG_PORT_MAX  = 65535;
+    public  final static int    CLIENT_RMIREG_RETRY_MAX = (CLIENT_RMIREG_PORT_MAX -
+                                                           CLIENT_RMIREG_PORT_MIN);
 
-    static final private String PROP_FILE = "alcatraz.props";
-    /**
-     * General Properties
-     */
-    static final private String CONNECTION_TIMEOUT = "connection_timeout_ms";
-    static final public int NAME_MAX_LENGTH        = 30;
-    /**
-     * Client Properties
-     */
-    static final public String SERVER_ADDRESS_LIST  = "server_address_list";
-    static final public String CLIENT_RMIREG_PORT   = "client_rmireg_port";
-    static final public String CLIENT_RMIREG_PATH   = "client_rmireg_path";
-    static final private int CLIENT_RMIREG_PORT_MIN = 49152;
-    static final private int CLIENT_RMIREG_PORT_MAX = 65535;
-    /**
-     * Server Properties
-     */
-    static final public String MY_SERVER_ADDRESS  = "my_server_host_address";
-    static final public String SERVER_RMIREG_PORT = "server_rmireg_port";
-    static final public String SERVER_RMIREG_PATH = "server_rmireg_path";
-    static final public String GROUP_NAME         = "spread_group_name";
-    private static Properties props               = null;
-    private static Logger l                       = Logger.getRootLogger();
+    // Server Properties
+    public  final static String MY_SERVER_ADDRESS  = "my_server_host_address";
+    public  final static String SERVER_RMIREG_PORT = "server_rmireg_port";
+    public  final static String SERVER_RMIREG_PATH = "server_rmireg_path";    
+    public  final static String SPREAD_SERVER_ADDR = "spread_server_address";
+    public  final static String SPREAD_SERVER_PORT = "spread_server_port";
+    public  final static String SPREAD_GROUP_NAME  = "spread_group_name";
+            
+    private static   Properties props              = null;
+    private static   Logger     l                  = Logger.getRootLogger();
 
+    private Util() {    
     //prohibit instances of class Util
-    private Util() {
     }
-
+    
+    /**
+     * Setup a Logger
+     * 
+     * @param name Name of the Logger
+     * @return Logger
+     */
+    public static Logger setLogger(String name)
+    {
+        return (l =  Logger.getLogger(name));
+    }
+    
+    /**
+     * Get Logger
+     * @return Logger
+     */
+    public static Logger getLogger()
+    {
+        return l;
+    }
+      
+    /**
+     * Read Properties from Properties File
+     * 
+     * @return Properties
+     */
     public static Properties readProps() 
     {
         FileInputStream fileIn = null;
         props = new Properties();
 
-        try {
+        try 
+        {
             fileIn = new FileInputStream(PROP_FILE);
             props.load(fileIn);
-        } catch (Exception e) {
+        } 
+        catch (Exception e) 
+        {
             l.fatal("Property file " + PROP_FILE + " not found!\n" 
                     + e.getMessage(), e);
             System.exit(1);
@@ -94,14 +126,33 @@ public final class Util {
         return getProp(SERVER_RMIREG_PATH);
     }
 
+    // spread server address
+    public static String getSpreadServerAddr() {
+        return getProp(SPREAD_SERVER_ADDR);
+    }
+    
+    // spread server port
+    public static String getSpreadServerPort() {
+        return getProp(SPREAD_SERVER_PORT);
+    }
+    
     // spread group name
-    public static String getGroupName() {
-        return getProp(GROUP_NAME);
+    public static String getSpreadGroupName() {
+        return getProp(SPREAD_GROUP_NAME);
     }
 
-    public static String getProp(String prop_name) {
+    /**
+     * Get Property
+     * 
+     * @param prop_name Name of the Property
+     * @return Property
+     */
+    public static String getProp(String prop_name) 
+    {
         String prop_val = props.getProperty(prop_name);
-        if (prop_val == null) {
+    
+        if (prop_val == null) 
+        {
             l.fatal("Property " + prop_name + 
                     " was not found in file " + PROP_FILE);
             System.exit(1);
@@ -125,24 +176,46 @@ public final class Util {
         return sb.toString();
     }
 
-    public static String buildRMIString(String host, int port, String path, String player_name) {
+    /**
+     * Construct RMI String
+     * 
+     * @param host  Host
+     * @param port  Port
+     * @param path  Path
+     * @param player_name   Player Name
+     * @return RMI String
+     */
+    public static String buildRMIString(String host, int port, String path, String player_name) 
+    {
         return buildRMIString(host, port, path + "/" + player_name);
     }
 
+    /**
+     * Add RMIReg to the Debug log
+     * 
+     * @param rmireg
+     * @throws RemoteException
+     * @throws AccessException 
+     */
     public static void logRMIReg(Registry rmireg)
             throws RemoteException, AccessException 
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("Objects available on ");
+        sb.append("Objects available on\n");
         sb.append(rmireg.toString()).append("\n");
         
         for (String s : rmireg.list()) 
         {
             sb.append(s).append("\n");
         }
+        
         l.debug(sb.toString());
     }
-
+    
+    /**
+     * Center frame on scree
+     * @param frm Frame
+     */
     public static void centerFrame(JFrame frm) 
     {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -151,7 +224,11 @@ public final class Util {
         int left = (screenSize.width - frm.getWidth()) / 2;
         frm.setLocation(left, top);
     }
-
+    
+    /**
+     * 
+     * @return Random Port
+     */
     public static int getRandomPort() 
     {
         Random random = new Random();
@@ -161,12 +238,22 @@ public final class Util {
         l.debug("Generated random port number: " + randomPort);
         return randomPort;
     }
-
-    public static void handleDebugMessage(String prefix, String message) 
+    
+    /**
+     * Create a unique Name
+     * 
+     * @param prefix Prefix 
+     * @return Unique name in format prefix_uuid
+     */
+    public static String getUniqueName(String prefix)
     {
-        l.debug(prefix + ": " + message + "\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append(prefix).append("_");
+        sb.append(UUID.randomUUID());
+        
+        return sb.toString();
     }
-
+    
     /**
      * Checks whether a string is empty and returns {@code true} if it is,
      * otherwise {@code false}
@@ -176,10 +263,7 @@ public final class Util {
      */
     public static boolean isEmpty(String value) 
     {
-        if (value == null || "".equals(value)) {
-            return true;
-        }
-        return false;
+        return (value == null || "".equals(value));
     }
 
     /**

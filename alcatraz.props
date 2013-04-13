@@ -8,7 +8,7 @@ connection_timeout_ms=1000
 ################################################################################
 # Client properties
 ################################################################################
-server_address_list=10.201.37.129
+server_address_list=192.168.0.14
 client_rmireg_port=49152
 client_rmireg_path=Alcatraz/Client
 
@@ -16,9 +16,11 @@ client_rmireg_path=Alcatraz/Client
 ################################################################################
 # Server properties
 ################################################################################
-my_server_host_address=10.201.37.129
+my_server_host_address=192.168.0.14
 server_rmireg_port=1099
 server_rmireg_path=Alcatraz/Server
+spread_server_address=localhost
+spread_server_port=4803
 spread_group_name=alcatraz
 
 

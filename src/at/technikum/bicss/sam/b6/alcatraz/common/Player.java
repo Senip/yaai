@@ -10,7 +10,8 @@ import java.io.Serializable;
  *
  * @author 
  */
-public class Player extends at.falb.games.alcatraz.api.Player implements Serializable {
+public class Player extends at.falb.games.alcatraz.api.Player implements Serializable 
+{
     private String  address;
     private int     port;
     private boolean ready;
@@ -21,9 +22,9 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
         super(id);
         super.setName(name);        
         this.address = address;
-        this.port = port;
-        this.ready = ready;
-        proxy = null;
+        this.port    = port;
+        this.ready   = ready;
+        this.proxy   = null;
     }       
 
     public String getAddress() {

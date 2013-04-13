@@ -5,8 +5,8 @@
 package at.technikum.bicss.sam.b6.alcatraz.server.spread;
 
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
-import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedListner;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedEvent;
+import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedListner;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,7 +17,8 @@ import java.util.List;
  *
  * @author
  */
-public class PlayerList implements Serializable, Iterable<Player> {
+public class PlayerList implements Serializable, Iterable<Player> 
+{
 
     private LinkedList<Player> player_list = new LinkedList();
     
@@ -28,6 +29,11 @@ public class PlayerList implements Serializable, Iterable<Player> {
     public synchronized void addObjectChangedListner(ObjectChangedListner l) 
     {
         event_listeners.add(l);
+    }
+    
+    public synchronized void removeObjectChangedListner(ObjectChangedListner l) 
+    {
+        try { event_listeners.remove(l); } catch(Exception e) { }
     }
 
     public synchronized void triggerObjectChangedEvent() 
@@ -103,5 +109,18 @@ public class PlayerList implements Serializable, Iterable<Player> {
             ready = true;
         }
         return ready;
+    }
+    
+    public Player getPlayerByName(String name)
+    {
+        for (Player p : player_list) 
+        {
+            if (p.getName().equals(name)) 
+            {
+                return p;
+            }
+        }
+        
+        return null;
     }
 }

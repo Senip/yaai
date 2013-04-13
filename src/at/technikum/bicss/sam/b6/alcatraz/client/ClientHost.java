@@ -34,7 +34,8 @@ import org.apache.log4j.PropertyConfigurator;
  *
  * @author 
  */
-public class ClientHost implements MoveListener {
+public class ClientHost implements MoveListener 
+{
 
     private String              serveraddr = null;
     private int                 serverport = 0;
@@ -45,30 +46,25 @@ public class ClientHost implements MoveListener {
     private LinkedList<Player>  playerlist = null;
     private Player              me         = null;
     private Alcatraz            actrz      = null;
-    static private Logger       l          = null;
+    private static Logger       l          = null;
 
     public static void main(String[] args) 
     {
         PropertyConfigurator.configure(Util.readProps());
-        l = Logger.getLogger(Util.getClientRMIPath());
+        l = Util.setLogger(Util.getClientRMIPath());
         new ClientHost();
     }
 
     public ClientHost() 
     {
+        me  = new Player(null, 0, null, 0, false);
         gui = new ClientGUI(this);
         gui.setVisible(true);
 
-        me = new Player(null, 0, null, 0, false);
-
-        try {
-            client = new ClientRMI(this);
-        } catch (RemoteException e) {
-            l.error(e.getMessage(), e);
-        }
-
         contactServer();
+                
         setupClientRMIReg();
+        
         l.info("Alcatraz Client running on " + me.getAddress() + ":" + me.getPort());
     }
 
@@ -88,9 +84,10 @@ public class ClientHost implements MoveListener {
      *
      * on successful completion {@code _serveraddr} is set to the Alcatraz
      * master server address and {@code _server) holds a reference to the remote {@link IServer}
-     * object on failure both will be set to {@code null}
+     * object on failure both will be set to {@code null} and the application is terminated
+     * 
      */
-    private void contactServer() 
+    private void contactServer()
     {
         l.info("Try to find server for registration process...");
         serveraddr  = null;
@@ -103,7 +100,8 @@ public class ClientHost implements MoveListener {
         String rmi_uri = null;
         for (String s_addr : Util.getServerAddressList()) 
         {
-            try {
+            try 
+            {
                 serveraddr = s_addr;
 
                 // 1. Establish a connetion to a server on the RMI-port with a socket                
@@ -141,11 +139,14 @@ public class ClientHost implements MoveListener {
                     // Obtain reference to remote object
                     rmi_uri = Util.buildRMIString(serveraddr, serverport, Util.getServerRMIPath());
                     l.debug("Lookup " + rmi_uri);
-                    server = (IServer) Naming.lookup(rmi_uri);
+                    server  = (IServer) Naming.lookup(rmi_uri);
                 }
                 
                 l.info("Reached master server at " + serveraddr + ":" + serverport);
+               
+                gui.updatePlayerList(server.getPlayerList());                
                 gui.lockRegisterBtn(false);
+                              
                 break;
             } 
             catch (NotBoundException e)         //thrown by Naming.lookup()
@@ -156,7 +157,7 @@ public class ClientHost implements MoveListener {
                 server     = null;
             } 
             catch (RemoteException e)           //thrown by Naming.lookup()
-            { 
+            {                                   //or server.getPlayerList()
                 l.warn(e.getMessage(), e);
                 serveraddr = null;
                 server     = null;
@@ -169,7 +170,7 @@ public class ClientHost implements MoveListener {
             } 
             catch (IOException e)               //thrown by sock.connect()
             { 
-                l.warn("registration server not reachable at "
+                l.warn("Registration server not reachable "
                         + serveraddr + ":" + serverport, e);
                 serveraddr = null;
                 server     = null;
@@ -189,6 +190,8 @@ public class ClientHost implements MoveListener {
             sb.append("\n Check your config file. ");
             sb.append("Ensure that at least one registration server is online");
             l.fatal(sb.toString());
+            
+            System.exit(1);
         }
     }
 
@@ -199,6 +202,18 @@ public class ClientHost implements MoveListener {
          * use own address to be associated with remote stubs for locally
          * created remote objects
          */
+        
+        try 
+        {
+            client = new ClientRMI(this);
+        } 
+        catch (RemoteException e) 
+        {
+            l.fatal("Failed to creates and exports a new UnicastRemoteObject object " + 
+                     "using an anonymous port" + e.getMessage(), e);
+            System.exit(1);
+        }
+        
         gui.lockRegisterBtn(true);
         System.setProperty("java.rmi.server.hostname", me.getAddress());
 
@@ -207,11 +222,16 @@ public class ClientHost implements MoveListener {
 
         // Setup Registry
         l.info("Set up RMI registry for own client services...");
-        do 
+        
+        boolean success = false;
+        for(int i = 1; !(success) && (i <= Util.CLIENT_RMIREG_RETRY_MAX); i++)
         {
+            l.info("#" + i + " Attempt");
+            
             try 
             {
-                rmireg = LocateRegistry.createRegistry(port);
+                rmireg  = LocateRegistry.createRegistry(port);
+                success = true;
                 break;
             } 
             catch (RemoteException e) 
@@ -219,15 +239,20 @@ public class ClientHost implements MoveListener {
                 l.debug("Not able to create registry on port: " + me.getPort(), e);
                 port = Util.getRandomPort();
                 l.debug("trying different port: " + port);
-            }
-            
-        } while (true);
+            }            
+        }
+        
+        if(!success)
+        {
+            l.fatal("Unable to set up RMI registry for client services ");
+            System.exit(1);
+        }
 
         me.setPort(port);
         gui.lockRegisterBtn(false);
     }
 
-    public boolean registerPlayer(String p_name) 
+    public boolean registerPlayer(String name) 
     {
         me.setName(null);
         boolean success = false;
@@ -237,11 +262,11 @@ public class ClientHost implements MoveListener {
         try 
         {
             String rmi_uri = Util.buildRMIString(me.getAddress(), me.getPort(),
-                    Util.getClientRMIPath(), p_name);
+                    Util.getClientRMIPath(), name);
             Naming.rebind(rmi_uri, client);
             l.info("Bound client methods to " + rmi_uri);
             Util.logRMIReg(rmireg);
-            me.setName(p_name);
+            me.setName(name);
         } 
         catch (RemoteException e) 
         {
@@ -285,7 +310,7 @@ public class ClientHost implements MoveListener {
         try 
         {
             String rmi_uri = Util.buildRMIString(me.getAddress(), me.getPort(),
-                    Util.getClientRMIPath(), p_name);
+                             Util.getClientRMIPath(), p_name);
             Naming.unbind(rmi_uri);
             Util.logRMIReg(rmireg);
             me.setName(p_name);
@@ -389,8 +414,28 @@ public class ClientHost implements MoveListener {
 
     private void initGame() 
     {
-        /* Not yet implemented */        
-        l.fatal("Not yet implemented");
+        actrz = new Alcatraz();
+        actrz.init(playerlist.size(), me.getId());
+
+        for (Player p : playerlist) 
+        {
+            actrz.getPlayer(p.getId()).setName(p.getName());
+        }
+        retreivePlayerProxys();
+
+        gui.setVisible(false);
+        /*
+         * set playername as title to distinguish several windows
+         */
+        actrz.getWindow().setTitle(
+                actrz.getWindow().getTitle() + " - " + me.getName());
+
+        Util.centerFrame(actrz.getWindow());
+        actrz.showWindow();
+
+        actrz.addMoveListener(this);
+
+        actrz.start();
     }
 
     private void retreivePlayerProxys() 
@@ -429,18 +474,54 @@ public class ClientHost implements MoveListener {
 
     public void processMove(Move m) 
     {
-        /* Not yet implemented */
+        l.debug("received a move from " + m.getPlayer().getName());
+        l.trace(m.toString());
+        actrz.doMove(m.getPlayer(), m.getPrisoner(), m.getRowOrCol(), m.getRow(), m.getCol());
     }
 
     @Override
     public void moveDone(at.falb.games.alcatraz.api.Player player, Prisoner prsnr, int i, int i1, int i2) 
     {  
-        /* Not yet implemented */
+        l.debug(player.getName() + " did a move");
+        Move move = new Move(player, prsnr, i, i1, i2);
+        l.trace(move.toString());
+
+        for (Player p : playerlist) 
+        {
+            if (p.getName().equals(me.getName())) 
+            {
+                break;
+            }
+
+            while (true) 
+            {
+                try 
+                {
+                    l.debug("Sending move to " + p.toString());
+                    p.getProxy().doMove(move);
+                    break;
+                } 
+                catch (RemoteException e) 
+                {
+                    l.warn(p.getAddress() + ":" + p.getPort(), e);
+                }
+            }
+        }
     }
 
     @Override
     public void gameWon(at.falb.games.alcatraz.api.Player player) 
-    {
-        /* Not yet implemented */
+    { 
+        l.info(player.getName() + " has won the game");        
+
+        actrz.closeWindow();
+        actrz.disposeWindow();
+        
+        gui.setVisible(true);
+        Util.warnUser(gui, (player.getName() + " has won the game"));
+        
+        playerlist = new LinkedList();
+        gui.updatePlayerList(playerlist);
+        gui.reset();
     }
 }

@@ -13,7 +13,8 @@ import java.io.Serializable;
  * Header: Type of Message (master-server, player-list)
  * Body: (id of master server, PlayerList)
  */
-public class AlcatrazMessage implements Serializable{
+public class AlcatrazMessage implements Serializable
+{
     // header if upadte on playerlist or a new masterserver
     private MessageHeader header;
     // new masterserver id or playerlist
@@ -36,10 +37,12 @@ public class AlcatrazMessage implements Serializable{
     }
     
     // guess there comes mr. header and his bride mr. body
-    public AlcatrazMessage(MessageHeader h, Object o) {
-        if(o != null){
+    public AlcatrazMessage(MessageHeader h, Object o) 
+    {
+        if(o != null)
+        {
             header = h;
-            body = o;
+            body   = o;
         }
     }
     

@@ -8,7 +8,7 @@ package at.technikum.bicss.sam.b6.alcatraz.server.spread.events;
  *
  * @author 
  */
-public interface ObjectChangedListner {
-
+public interface ObjectChangedListner 
+{
     public void updateObject(ObjectChangedEvent event);
 }

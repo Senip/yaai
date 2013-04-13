@@ -1,1 +1,8 @@
-start java -cp dist/Alcatraz_B6.jar at.technikum.bicss.sam.b6.alcatraz.client.ClientHost
+@echo off
+
+java -cp dist/Alcatraz_B6.jar at.technikum.bicss.sam.b6.alcatraz.client.ClientHost
+
+if NOT %errorlevel% == 0
+(
+pause
+)

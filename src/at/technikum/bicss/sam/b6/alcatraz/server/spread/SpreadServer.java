@@ -11,102 +11,137 @@ package at.technikum.bicss.sam.b6.alcatraz.server.spread;
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedEvent;
+import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedListner;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 import spread.SpreadConnection;
 import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
-import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedListner;
 
 public class SpreadServer implements ObjectChangedListner 
 {
-    // SpreadServer 
-    // singelton instance
-    private static SpreadServer _spread_instance = null;
+    // Constans
+    private final static InetAddress DEFAULT_ADDR = null;
+    private final static int         DEFAULT_PORT = 0;
     
     // spread configuration 
-    private String spread_group_name;
-    private String server_address;
+    private String groupName;
     
     // Master Server 
-    private Boolean i_am_master_server = false;
-    private String group_master_server;
-    private String group_master_server_address;
-    private LinkedList server_list     = new LinkedList();
+    private String     group_master_server;
+    private String     group_master_server_address;
+    private Boolean    i_am_master_server = false;
+    private LinkedList serverList         = new LinkedList();
     
     // keep track of playerlist to send it to new group members
-    private PlayerList player_list     = new PlayerList();
+    private PlayerList       playerList   = new PlayerList();
     
     // connection and listner   
-    SpreadConnection connection        = new SpreadConnection();
-    MessageListener listener           = new MessageListener(this);
+    private SpreadConnection connection   = new SpreadConnection();
+    private MessageListener  listener     = new MessageListener(this);
+    private SpreadGroup      group        = new SpreadGroup();
 
-    // get Singelton
-    public static SpreadServer getInstance() 
-    {
-        // create singelton if there is no instance yet
-
-        if (_spread_instance == null) 
-        {
-            try 
-            {
-                _spread_instance = new SpreadServer();
-            } 
-            catch (NullPointerException ex) 
-            {
-                Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+    // Logger    
+    private static Logger l               = Util.getLogger();
         
-        return _spread_instance;
+    public SpreadServer() {
     }
-
-    private SpreadServer() 
-    {
-        Util.readProps();
-        spread_group_name = Util.getGroupName();
-        server_address    = "localhost";
+       
+    public SpreadServer(InetAddress address, int port, String privateName, String groupName) throws SpreadException
+    { 
+        open(address, port, privateName, groupName);
+    }
+    
+    /**
+     * Open Spread Server Connection
+     * 
+     * @param address       Spread Server Address      null = default localhost
+     * @param port          Spread Server Port            0 = default 4803
+     * @param privateName   Name of this connection    must be unique per spread server
+     * @param groupName     Name of the group          null = don't join a group
+     * 
+     * @return Connection
+     */    
+    public SpreadConnection open(InetAddress address, int port, String privateName, String groupName) throws SpreadException
+    {        
+        this.groupName = groupName;
     
         // set listener
-        player_list.addObjectChangedListner(this);
+        playerList.addObjectChangedListner(this);   
+        
+        // Connect
+        connection.connect(address, port, privateName, false, (groupName != null));
+        connection.add(listener);
+                
+        l.debug("SPREAD: Setup listener");
+        
+        // Join Group
+        group.join(connection, this.groupName);
 
+        return connection;
+    }
+    
+    /**
+     * Close Spread Server Connection
+     */
+    public void close()
+    {
+        try { group.leave();                               } catch(Exception e) { }
+        try { connection.remove(listener);                 } catch(Exception e) { }
+        try { connection.disconnect();                     } catch(Exception e) { }
+        try { playerList.removeObjectChangedListner(this); } catch(Exception e) { }
+    }
+    
+    public static InetAddress getAddr(String name)
+    {
+        InetAddress addr = DEFAULT_ADDR; 
+        
         try 
         {
-            // connect: address, port (0 = default 4803), privatename, .?., groupmessages
-            connection.connect(InetAddress.getByName(server_address), 0,
-                    "alcatraz", false, true);
-            connection.add(listener);
-            Util.handleDebugMessage("SPREAD", "Setup listener");
-            SpreadGroup group = new SpreadGroup();
-            group.join(connection, spread_group_name);
-
-        } catch (SpreadException ex) 
-        {
-            System.out.print(ex);
-            Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
+            addr = InetAddress.getByName(name); 
         } 
-        catch (UnknownHostException ex) 
+        catch (UnknownHostException e) 
         {
-            Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
-        } 
-        catch (NullPointerException ex) 
-        {
-            Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE, null, ex);
+            l.warn("Can't resolve spread host address: " + name + "\n" + e.getMessage());
+            l.info("Using default address...");
         }
+        
+        return addr;
     }
-
+    
+    public static int getPort(String port)
+    {
+        int intPort = DEFAULT_PORT;
+                
+        try
+        {
+            intPort = Integer.parseInt(port);
+        }
+        catch(NumberFormatException e)
+        {
+            l.warn("Can't parse spread host port: " + port + "\n" + e.getMessage());
+            l.info("Using default address... (localhost)");
+        }
+        
+        return intPort;
+    }
+    
     // getters and setters for internal data structure 
     public void addMemberServer(String name) {
-        server_list.add(name);
+        serverList.add(name);
     }
 
     public void updateMemberServer(LinkedList sl) {
-        server_list = sl;
+        serverList = sl;
     }
+    
+    public LinkedList getMemberServer() {
+        return serverList;
+    }
+    
 
     public SpreadGroup getPrivateGroup() {
         return connection.getPrivateGroup();
@@ -121,7 +156,7 @@ public class SpreadServer implements ObjectChangedListner
             this.i_am_master_server = true;
             this.group_master_server_address = Util.getMyServerAddress();
 
-            Util.handleDebugMessage("SPREAD", "Master Server Host Address: "
+            l.debug("SPREAD: Master Server Host Address: "
                     + this.group_master_server_address);
 
         }
@@ -132,31 +167,28 @@ public class SpreadServer implements ObjectChangedListner
     }
 
     public void setPlayerList(LinkedList<Player> ll) {
-        player_list.setLinkedList(ll);
+        playerList.setLinkedList(ll);
     }
 
     public PlayerList getPlayerList() {
-        return player_list;
+        return playerList;
     }
     // remove a server and start election if appropriate 
 
     void removeServer(String server) 
     {
         // remove server from list caused by spread leave or disconnect
-        Util.handleDebugMessage("SPREAD",
-                "remove server node from list (" + server + ")");
-        server_list.remove(server);
+        l.debug("SPREAD: Remove server node from list (" + server + ")");
+        serverList.remove(server);
         
         // the master has gone
         if (server.equalsIgnoreCase(group_master_server)) 
         {
             // elect new master server and master messages other nodes
             // election:
-            if (getPrivateGroup().toString().equalsIgnoreCase(
-                    (String) server_list.getFirst())) 
+            if (getPrivateGroup().toString().equalsIgnoreCase((String) serverList.getFirst())) 
             {
-
-                Util.handleDebugMessage("SPREAD", "This server node is new MASTER");
+                l.debug("SPREAD: This server node is new MASTER");
                 // new master updates other server nodes
                 setMasterServer(getPrivateGroup().toString());
             }
@@ -177,65 +209,61 @@ public class SpreadServer implements ObjectChangedListner
         try 
         {
             SpreadMessage msg = new SpreadMessage();
-            msg.setObject(a_msg);
-            msg.addGroup(spread_group_name);
-            msg.setReliable();
-            msg.setFifo();
-            connection.multicast(msg);
+            msg.setObject(a_msg);       // Send one Java object 
+            msg.addGroup(groupName);    // Specify a group to send the message to
+            msg.setReliable();          // Set the message to be reliable.
+            msg.setFifo();              // Set the delivery method to FiFo
+            msg.setSelfDiscard(true);   // This message should not be sent back to the user who is sending it
+            connection.multicast(msg);  // Send the message!
 
-            Util.handleDebugMessage("SPREAD", "multicast message: "
-                    + a_msg.getHeader() + "\n" + a_msg.getBody());
-
+            l.debug("SPREAD: multicast message: " + a_msg.getHeader() + "\n" + a_msg.getBody());
         } 
-        catch (SpreadException ex) 
+        catch (SpreadException e) 
         {
-            Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE,
-                    null, ex);
+            l.fatal(e.getMessage(), e);
         } 
-        catch (NullPointerException ex) 
+        catch (NullPointerException e) 
         {
-            Logger.getLogger(SpreadServer.class.getName()).log(Level.SEVERE,
-                    null, ex);
+            l.fatal(e.getMessage(), e);
         }
-
     }
 
-    public void multicastPlayerList() {
+    public void multicastPlayerList() 
+    {
         // update servers nodes 
         multicastMessage(new AlcatrazMessage(MessageHeader.PLAYER_LIST,
-                player_list.getLinkedList()));
-
+                playerList.getLinkedList()));
     }
 
-    void multicastServerList() {
-
+    public void multicastServerList() 
+    {
         multicastMessage(new AlcatrazMessage(MessageHeader.SERVER_LIST,
-                server_list));
+                serverList));
     }
 
-    void multicastMasterServerInformation() {
-
+    public void multicastMasterServerInformation() 
+    {
         multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER,
                 group_master_server));
     }
 
-    void multicastMasterHostAddress() {
+    public void multicastMasterHostAddress() 
+    {
         multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER_ADDRESS,
                 group_master_server_address));
     }
 
     @Override
-    public void updateObject(ObjectChangedEvent event) {
-        // the player_list was change
-        // spread modified player_list to other server nodes
-        Util.handleDebugMessage("SPREAD", "PlayerList was changed.");
+    public void updateObject(ObjectChangedEvent event) 
+    {
+        // the playerList was change
+        // spread modified playerList to other server nodes
+        l.debug("SPREAD: PlayerList was changed.");
         this.multicastPlayerList();
-
     }
 
     public void setMasterServerAddress(String msa) {
         this.group_master_server_address = msa;
-
     }
 
     public String getMasterServerAddress() {
