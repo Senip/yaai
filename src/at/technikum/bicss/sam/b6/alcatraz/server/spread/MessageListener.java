@@ -48,7 +48,11 @@ public class MessageListener implements AdvancedMessageListener
 
             l.debug("SPREAD: got message: " + obj.getHeader());
 
-            if (!spreadServer.isMasterServer()) 
+            if (spreadServer.i_am_MasterServer()) 
+            {
+                l.info("SPREAD: Message from Slave ignored");
+            }
+            else
             {
                 // update Master Server
                 if      (obj.getHeader() == MessageHeader.MASTER_SERVER) 
@@ -63,35 +67,38 @@ public class MessageListener implements AdvancedMessageListener
                 } 
                 else if (obj.getHeader() == MessageHeader.SERVER_LIST) 
                 {
-                    l.debug("SPREAD: ServerList update: "            + obj.getBody() + "\n");
+                    l.debug("SPREAD: ServerList update: "            + obj.getBody());
                     spreadServer.updateMemberServer((LinkedList) obj.getBody());
                 } 
                 else if (obj.getHeader() == MessageHeader.MASTER_SERVER_ADDRESS) 
                 {
-                    l.debug("SPREAD: Master server address update: " + obj.getBody() + "\n");
+                    l.debug("SPREAD: Master server address update: " + obj.getBody());
                     spreadServer.setMasterServerAddress((String) obj.getBody());
                 }
             }
         } 
         catch (SpreadException e) 
         {
-            l.fatal("Spread Exception " + e.getMessage());
+            // We assume that the connection is dead
+            l.fatal("SPREAD: " + e.getMessage());
             System.exit(1);
         }
     }
 
     @Override
     public void membershipMessageReceived(SpreadMessage message) 
-    {
+    {        
         MembershipInfo msi = message.getMembershipInfo();
 
         l.debug("SPREAD: Membership Message recieved");
         l.debug("SPREAD: Members: " + msi.getMembers());
+        
         if(msi.getMembers() != null)
         {
             l.debug("SPREAD: Group Members: " + msi.getMembers().length);
             l.debug("SPREAD: Group ID: "      + msi.getGroupID());
         }
+        
         // there is a join
         if (msi.isCausedByJoin()) 
         {
@@ -108,13 +115,13 @@ public class MessageListener implements AdvancedMessageListener
                 l.debug("SPREAD: This node is the Master Server: \n"
                         + spreadServer.getPrivateGroup().toString());
             } 
-            else if (spreadServer.isMasterServer()) 
+            else if (spreadServer.i_am_MasterServer()) 
             {
                 spreadServer.addMemberServer(msi.getJoined().toString());
                 spreadServer.multicastServerList();
-                spreadServer.multicastMasterServerInformation();
-                spreadServer.multicastMasterHostAddress();
                 spreadServer.multicastPlayerList();
+                spreadServer.multicastMasterServerInformation();
+                spreadServer.multicastMasterHostAddress();      // <-- sync
             }
         }
 

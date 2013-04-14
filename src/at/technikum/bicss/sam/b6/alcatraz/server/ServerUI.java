@@ -44,8 +44,10 @@ public class ServerUI
 
                 str = in.nextLine();
                 str = str.trim();
-
+                
             } while(str.isEmpty());
+            
+            
                         
             switch(str.toLowerCase())
             {

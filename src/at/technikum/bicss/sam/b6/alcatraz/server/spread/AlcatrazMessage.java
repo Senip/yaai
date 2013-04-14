@@ -36,7 +36,6 @@ public class AlcatrazMessage implements Serializable
         this.header = header;
     }
     
-    // guess there comes mr. header and his bride mr. body
     public AlcatrazMessage(MessageHeader h, Object o) 
     {
         if(o != null)
@@ -45,7 +44,4 @@ public class AlcatrazMessage implements Serializable
             body   = o;
         }
     }
-    
-    
-    
 }

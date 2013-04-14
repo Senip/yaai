@@ -4,24 +4,19 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.server;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
+import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.PlayerList;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.Spread;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.SpreadServer;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.rmi.Naming;
-import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.LinkedList;
-import java.util.logging.Level;
 import org.apache.log4j.Logger;
-import spread.SpreadException;
 
 /**
  *
@@ -34,22 +29,17 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     private SpreadServer  spreadServer;
     static private Logger l = Util.getLogger();
 
-    public ServerRMI() throws RemoteException 
+    public ServerRMI(SpreadServer spreadServer) throws RemoteException 
     {
         super();
         
         // create initial spread server instance
         Util.readProps();
         
-        spreadServer = Spread.open();            
-        playerList   = spreadServer.getPlayerList();
+        this.spreadServer = spreadServer;            
+        this.playerList   = spreadServer.getPlayerList();
         
-    }
-    
-    public void close()
-    {
-        spreadServer = Spread.close();
-        playerList   = null; 
+        l.info("SERVER: Setup Connection, Master Server is " + spreadServer.getMasterServerAddress());
     }
 
     /**
@@ -66,8 +56,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         
         do
         {
-            success = true;
-            
+            success = true;            
             /*
              * The Playerlist is sent to all Players
              * If a Player disconnected, he is removed from the list
@@ -82,8 +71,8 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
                 
                 try 
                 {
-                    IClient c = (IClient) Naming.lookup(rmi_uri);
-                    c.updatePlayerList(playerList.getLinkedList());
+                    IClient client = (IClient) Naming.lookup(rmi_uri);
+                    client.updatePlayerList(playerList.getLinkedList());
                 } 
                 catch (Exception e) 
                 {

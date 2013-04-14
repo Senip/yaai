@@ -123,7 +123,6 @@ public class ClientHost implements MoveListener
                 serveraddr = server.getMasterServer();
                 l.debug("Master registration server at " + serveraddr + ":" + serverport);
 
-
                 // 3. if master server is on different address:
                 if (!serveraddr.equals(s_addr)) 
                 {
@@ -163,6 +162,12 @@ public class ClientHost implements MoveListener
                 server     = null;
             } 
             catch (MalformedURLException e)     //thrown by Naming.lookup()
+            { 
+                l.error(e.getMessage(), e);
+                serveraddr = null;
+                server     = null;
+            } 
+            catch (NullPointerException e)     //thrown if server = null
             { 
                 l.error(e.getMessage(), e);
                 serveraddr = null;
