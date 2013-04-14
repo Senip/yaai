@@ -15,6 +15,7 @@ import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedList
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 import spread.SpreadConnection;
 import spread.SpreadException;
@@ -31,11 +32,11 @@ public class SpreadServer implements ObjectChangedListner
     private String groupName;
     
     // Master Server 
-    private String     group_master_server;
-    private String     group_master_server_address;
-    private Boolean    i_am_master_server = false;
-    private LinkedList serverList         = new LinkedList();
-    
+    private String       groupMasterServer        = null;
+    private String       groupMasterServerAddress = null;
+    private Boolean      i_am_MasterServer        = false;
+    private LinkedList   serverList               = new LinkedList();
+        
     // keep track of playerlist to send it to new group members
     private PlayerList       playerList   = new PlayerList();
     
@@ -43,18 +44,13 @@ public class SpreadServer implements ObjectChangedListner
     private SpreadConnection connection   = new SpreadConnection();
     private MessageListener  listener     = new MessageListener(this);
     private SpreadGroup      group        = new SpreadGroup();
-
+    
+    // Synchronisation
+    private final Object syncGroupMasterServerAddress = new Object();
+    
     // Logger    
     private static Logger l               = Util.getLogger();
         
-    public SpreadServer() {
-    }
-       
-    public SpreadServer(InetAddress address, int port, String privateName, String groupName) throws SpreadException
-    { 
-        open(address, port, privateName, groupName);
-    }
-    
     /**
      * Open Spread Server Connection
      * 
@@ -65,7 +61,7 @@ public class SpreadServer implements ObjectChangedListner
      * 
      * @return Connection
      */    
-    public SpreadConnection open(InetAddress address, int port, String privateName, String groupName) throws SpreadException
+    public SpreadServer(InetAddress address, int port, String privateName, String groupName) throws SpreadException
     {        
         this.groupName = groupName;
     
@@ -74,14 +70,68 @@ public class SpreadServer implements ObjectChangedListner
         
         // Connect
         connection.connect(address, port, privateName, false, (groupName != null));
-        connection.add(listener);
-                
-        l.debug("SPREAD: Setup listener");
         
         // Join Group
         group.join(connection, this.groupName);
-
-        return connection;
+        
+        //Add Listener    
+        l.debug("SPREAD: Setup listener");   
+        /*
+         * Spread 4.2.0     SpreadConnection.java
+         * 
+         * The Spread Listener (1601: private class Listener extends Thread)
+         * does not provide any kind of error handling in case the connection
+         * brakes. Then the error message is simply printed to System.out 
+         * (1656, 1866). Thus we can't discover if we lost the connection.
+         * 
+         * Spread does not provide any service to check if the connection is alive.
+         * All methods which performe read() are private, and all methods which are
+         * public, check if a listener is attached. Anyway read() would be hard to 
+         * handle.
+         * 
+         * Therefore the only way is to multicast and to check if write() fails. 
+         * If so, we assume that the connection is dead.
+         * 
+         */
+        connection.add(listener);
+                
+    }
+    
+    public void sync()
+    {
+        /*
+         * The constructor attaces the Listener and returns. 
+         * i.e. this server is not in sync with the other server.
+         * 
+         * After the master received the memebership information, it will 
+         * multicast the relevant information.
+         * 
+         * If this is the first server it sets its own address.
+         * 
+         * In any case all relevant information is received, once the master
+         * server address is set.
+         */
+        
+        boolean sync;
+        
+        synchronized(syncGroupMasterServerAddress)
+        {
+            sync = (groupMasterServerAddress != null);
+        
+            while(!sync) 
+            {
+                try { syncGroupMasterServerAddress.wait(); break; } 
+                catch (InterruptedException e) {  }
+            };   
+        }
+    }
+    
+    public boolean isSynced()
+    {
+        synchronized(syncGroupMasterServerAddress)
+        {
+            return (groupMasterServerAddress != null);
+        }
     }
     
     /**
@@ -134,8 +184,8 @@ public class SpreadServer implements ObjectChangedListner
         serverList.add(name);
     }
 
-    public void updateMemberServer(LinkedList sl) {
-        serverList = sl;
+    public void updateMemberServer(LinkedList serverList) {
+        this.serverList = serverList;
     }
     
     public LinkedList getMemberServer() {
@@ -148,22 +198,46 @@ public class SpreadServer implements ObjectChangedListner
     }
 
     public void setMasterServer(String ms) 
-    {
-        group_master_server = ms;
+    {      
+        groupMasterServer = ms;
         
         if (ms.equalsIgnoreCase(getPrivateGroup().toString())) 
         {
-            this.i_am_master_server = true;
-            this.group_master_server_address = Util.getMyServerAddress();
-
-            l.debug("SPREAD: Master Server Host Address: "
-                    + this.group_master_server_address);
-
+            this.i_am_MasterServer = true;
+              
+            synchronized(syncGroupMasterServerAddress)
+            {
+                this.groupMasterServerAddress = Util.getMyServerAddress();
+                syncGroupMasterServerAddress.notifyAll();
+            
+                l.debug("SPREAD: Master Server Host Address: " + this.groupMasterServerAddress);
+            }
+        }
+    }
+    
+    public void setMasterServerAddress(String address) 
+    {
+        synchronized(syncGroupMasterServerAddress)
+        {
+            this.groupMasterServerAddress = address;  
+            syncGroupMasterServerAddress.notifyAll();
         }
     }
 
-    public boolean isMasterServer() {
-        return i_am_master_server;
+    public String getMasterServerAddress() 
+    {
+        synchronized(syncGroupMasterServerAddress)
+        {
+            if(!isSynced())
+            {
+                sync();
+            }
+            return this.groupMasterServerAddress;
+        }
+    }
+
+    public boolean i_am_MasterServer() {
+        return i_am_MasterServer;
     }
 
     public void setPlayerList(LinkedList<Player> ll) {
@@ -175,14 +249,14 @@ public class SpreadServer implements ObjectChangedListner
     }
     // remove a server and start election if appropriate 
 
-    void removeServer(String server) 
+    public void removeServer(String server) 
     {
         // remove server from list caused by spread leave or disconnect
         l.debug("SPREAD: Remove server node from list (" + server + ")");
         serverList.remove(server);
         
         // the master has gone
-        if (server.equalsIgnoreCase(group_master_server)) 
+        if (server.equalsIgnoreCase(groupMasterServer)) 
         {
             // elect new master server and master messages other nodes
             // election:
@@ -194,63 +268,59 @@ public class SpreadServer implements ObjectChangedListner
             }
         }
 
-        if (i_am_master_server) 
+        if (i_am_MasterServer) 
         {
             this.multicastMasterServerInformation();
             this.multicastMasterHostAddress();
             this.multicastServerList();
         }
-
     }
 
     // Spread Group Messages
-    private void multicastMessage(AlcatrazMessage a_msg) 
+    private void multicastMessage(AlcatrazMessage message) 
     {
         try 
         {
             SpreadMessage msg = new SpreadMessage();
-            msg.setObject(a_msg);       // Send one Java object 
+            msg.setObject(message);     // Send one Java object 
             msg.addGroup(groupName);    // Specify a group to send the message to
             msg.setReliable();          // Set the message to be reliable.
             msg.setFifo();              // Set the delivery method to FiFo
             msg.setSelfDiscard(true);   // This message should not be sent back to the user who is sending it
             connection.multicast(msg);  // Send the message!
 
-            l.debug("SPREAD: multicast message: " + a_msg.getHeader() + "\n" + a_msg.getBody());
+            l.debug("SPREAD: Multicast message: " + message.getHeader() + "\n" + message.getBody());
         } 
         catch (SpreadException e) 
         {
-            l.fatal(e.getMessage(), e);
+            // We assume that the connection is dead
+            l.fatal("SPREAD: " + e.getMessage());
+            System.exit(1);
         } 
-        catch (NullPointerException e) 
-        {
-            l.fatal(e.getMessage(), e);
-        }
     }
-
+    
     public void multicastPlayerList() 
     {
         // update servers nodes 
-        multicastMessage(new AlcatrazMessage(MessageHeader.PLAYER_LIST,
-                playerList.getLinkedList()));
+        multicastMessage(new AlcatrazMessage(MessageHeader.PLAYER_LIST, playerList.getLinkedList()));
     }
 
     public void multicastServerList() 
     {
-        multicastMessage(new AlcatrazMessage(MessageHeader.SERVER_LIST,
-                serverList));
+        multicastMessage(new AlcatrazMessage(MessageHeader.SERVER_LIST, serverList));
     }
 
     public void multicastMasterServerInformation() 
     {
-        multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER,
-                group_master_server));
+        multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER, groupMasterServer));
     }
 
     public void multicastMasterHostAddress() 
     {
-        multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER_ADDRESS,
-                group_master_server_address));
+        synchronized(syncGroupMasterServerAddress)
+        {
+        multicastMessage(new AlcatrazMessage(MessageHeader.MASTER_SERVER_ADDRESS, groupMasterServerAddress));
+        }
     }
 
     @Override
@@ -260,13 +330,5 @@ public class SpreadServer implements ObjectChangedListner
         // spread modified playerList to other server nodes
         l.debug("SPREAD: PlayerList was changed.");
         this.multicastPlayerList();
-    }
-
-    public void setMasterServerAddress(String msa) {
-        this.group_master_server_address = msa;
-    }
-
-    public String getMasterServerAddress() {
-        return this.group_master_server_address;
     }
 }
