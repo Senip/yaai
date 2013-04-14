@@ -134,6 +134,8 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         
         Player player = playerList.getPlayerByName(name);
         
+        // Put some anti-Session hijacking code here        
+        
         if (player == null) 
         {
             AlcatrazServerException e = new AlcatrazServerException("Playername " + name + " not found!");
@@ -155,6 +157,8 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         
         Player player = playerList.getPlayerByName(name);
 
+        // Put some anti-Session hijacking code here    
+        
         if (player == null) 
         {
             AlcatrazServerException e = 

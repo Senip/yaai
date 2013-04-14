@@ -102,43 +102,71 @@ public final class Util
     }
 
     public static String[] getServerAddressList() {
-        return getProp(SERVER_ADDRESS_LIST).split(",");
+        return getProp(SERVER_ADDRESS_LIST).split("\\s*,\\s*"); //Split and trim
     }
 
-    public static int getClientRMIPort() {
-        return Integer.valueOf(getProp(CLIENT_RMIREG_PORT));
+    public static int getClientRMIPort() 
+    {
+        int port = 0;
+        
+        try
+        {
+            port = Integer.valueOf(getProp(CLIENT_RMIREG_PORT)).intValue();
+        }
+        catch(NumberFormatException e)
+        {
+            l.fatal("Can't parse Server RMI Registry Port " + 
+                    " (CLIENT_RMIREG_PORT):" + getProp(CLIENT_RMIREG_PORT), e);
+            System.exit(1);
+        }
+                
+        return port;
     }
 
     public static String getClientRMIPath() {
-        return getProp(CLIENT_RMIREG_PATH);
+        return getProp(CLIENT_RMIREG_PATH).trim();
     }
 
     // master server ip
     public static String getMyServerAddress() {
-        return getProp(MY_SERVER_ADDRESS);
+        return getProp(MY_SERVER_ADDRESS).trim();
     }
 
-    public static int getServerRMIPort() {
-        return Integer.valueOf(getProp(SERVER_RMIREG_PORT));
+    public static int getServerRMIPort() 
+    {
+        int port = 0;
+        
+        try
+        {
+            port = Integer.valueOf(getProp(SERVER_RMIREG_PORT)).intValue();
+        }
+        catch(NumberFormatException e)
+        {
+            l.fatal("Can't parse Server RMI Registry Port " + 
+                    " (SERVER_RMIREG_PORT):" + getProp(SERVER_RMIREG_PORT), e);
+            System.exit(1);
+        }
+                
+        return port;
     }
 
     public static String getServerRMIPath() {
-        return getProp(SERVER_RMIREG_PATH);
+        return getProp(SERVER_RMIREG_PATH).trim();
     }
 
     // spread server address
     public static String getSpreadServerAddr() {
-        return getProp(SPREAD_SERVER_ADDR);
+        return getProp(SPREAD_SERVER_ADDR).trim();
     }
     
     // spread server port
     public static String getSpreadServerPort() {
-        return getProp(SPREAD_SERVER_PORT);
+        return getProp(SPREAD_SERVER_PORT).trim();
     }
     
     // spread group name
     public static String getSpreadGroupName() {
-        return getProp(SPREAD_GROUP_NAME);
+        return getProp(SPREAD_GROUP_NAME).trim();
     }
 
     /**
@@ -249,7 +277,7 @@ public final class Util
     {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("_");
-        sb.append(UUID.randomUUID());
+        sb.append(UUID.randomUUID().toString());
         
         return sb.toString();
     }

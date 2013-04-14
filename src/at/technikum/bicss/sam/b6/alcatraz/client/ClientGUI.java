@@ -198,7 +198,7 @@ public class ClientGUI extends javax.swing.JFrame
         if (evt.getActionCommand().toString().equals("unregister")) {
             jBtn_Register.setEnabled(false);
 
-            if (hosthandle.unregisterPlayer(this.jTxtFld_PName.getText())) {
+            if (hosthandle.unregisterPlayer()) {
                 jBtn_Register.setText("Register");
                 jBtn_Register.setActionCommand("register");
                 jBtn_Ready.setEnabled(false);

@@ -12,6 +12,7 @@ import java.io.Serializable;
  */
 public class Player extends at.falb.games.alcatraz.api.Player implements Serializable 
 {
+    private String  UUID;
     private String  address;
     private int     port;
     private boolean ready;
@@ -58,7 +59,15 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
     public void setProxy(IClient proxy) {
         this.proxy = proxy;
     }
-    
+
+    public String getUUID() {
+        return UUID;
+    }
+
+    public void setUUID(String UUID) {
+        this.UUID = UUID;
+    }
+       
     @Override
     public String toString() 
     {
