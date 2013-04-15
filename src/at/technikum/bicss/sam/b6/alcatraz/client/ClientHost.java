@@ -298,7 +298,6 @@ public class ClientHost implements MoveListener
         {
             l.warn(e.getMessage(), e);
         }
-
                   
         // Register Player at Server
         if (!me.getName().isEmpty()) 
@@ -445,6 +444,27 @@ public class ClientHost implements MoveListener
         
         return success;
     }
+    
+    private void updatePlayerList()
+    {
+        boolean retry;
+        l.debug("Try to update the Player List");
+        
+        do
+        {
+            retry = false;
+            
+            try 
+            {  
+                gui.updatePlayerList(server.getPlayerList());
+            } 
+            catch (RemoteException e) 
+            {
+                l.info("Relocation server...");
+                retry = contactServer();
+            }
+        } while(retry);        
+    }
 
     public void processPlayerList(LinkedList<Player> pl) 
     {
@@ -473,8 +493,9 @@ public class ClientHost implements MoveListener
 
         gui.updatePlayerList(playerlist);
 
-        // if all players are ready start the game 
+        // if all players are ready 
         // AND there are at least 2 players
+        // start the game 
         if ((ctr == playerlist.size()) && (ctr >= 2)) 
         {
             l.info("Game ready!");
@@ -487,29 +508,37 @@ public class ClientHost implements MoveListener
         actrz = new Alcatraz();
         actrz.init(playerlist.size(), me.getId());
 
-        for (Player p : playerlist) 
+        if(retreivePlayerProxys())
         {
-            actrz.getPlayer(p.getId()).setName(p.getName());
+            for (Player p : playerlist) 
+            {
+                actrz.getPlayer(p.getId()).setName(p.getName());
+            }
+
+            gui.setVisible(false);
+            /*
+             * set playername as title to distinguish several windows
+             */
+            actrz.getWindow().setTitle(
+                    actrz.getWindow().getTitle() + " - " + me.getName());
+
+            Util.centerFrame(actrz.getWindow());
+            actrz.showWindow();
+
+            actrz.addMoveListener(this);
+
+            actrz.start();
         }
-        retreivePlayerProxys();
-
-        gui.setVisible(false);
-        /*
-         * set playername as title to distinguish several windows
-         */
-        actrz.getWindow().setTitle(
-                actrz.getWindow().getTitle() + " - " + me.getName());
-
-        Util.centerFrame(actrz.getWindow());
-        actrz.showWindow();
-
-        actrz.addMoveListener(this);
-
-        actrz.start();
+        else
+        {
+            updatePlayerList();
+        }
     }
 
-    private void retreivePlayerProxys() 
+    private boolean retreivePlayerProxys() 
     {
+        boolean success = true;
+        
         for (Player p : playerlist) 
         {
             if (p.getName().equals(me.getName())) 
@@ -524,6 +553,7 @@ public class ClientHost implements MoveListener
                 IClient clientproxy = null;
                 clientproxy = (IClient) Naming.lookup(rmi_uri);
                 p.setProxy(clientproxy);
+                continue;
             } 
             catch (NotBoundException e) 
             {
@@ -537,9 +567,19 @@ public class ClientHost implements MoveListener
             } 
             catch (MalformedURLException e) 
             {
-                l.error(e.getMessage(), e);
+                l.warn(e.getMessage(), e);
             }
+            
+            success = false;
+            break;
         }
+        
+        if(!success)
+        {
+            l.error("Starting the Game failed\nSome Player seem not be ready");
+        }
+        
+        return success;
     }
 
     public void processMove(Move m) 

@@ -10,7 +10,6 @@ import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.PlayerList;
-import at.technikum.bicss.sam.b6.alcatraz.server.spread.Spread;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.SpreadServer;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -87,10 +86,22 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         }
         while(!success);
     }
+    
+    private void masterLock() throws RemoteException
+    {
+        if(!spreadServer.i_am_MasterServer())
+        {
+            RemoteException e = new RemoteException("Please contact the master!");
+            l.warn(e.getMessage());
+            throw e;
+        }
+    }
 
     @Override
-    public synchronized LinkedList<Player> getPlayerList()
-    {        
+    public synchronized LinkedList<Player> getPlayerList() throws RemoteException
+    {
+        masterLock();
+        
         // Check if all Players are still there and send the list to the newcommer
         broadcastPlayerList();
         return playerList.getLinkedList();
@@ -99,6 +110,8 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     @Override
     public synchronized void register(String name, String address, int port) throws RemoteException, AlcatrazServerException 
     {
+        masterLock();
+        
         Player player = new Player(name, 0, address, port, false);
         l.info("SERVER: New player wants to register:\n" + player.toString());
 
@@ -130,6 +143,8 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     @Override
     public synchronized void deregister(String name) throws RemoteException, AlcatrazServerException 
     {
+        masterLock();
+        
         l.info("SERVER: Player wants to deregister" + name);
         
         Player player = playerList.getPlayerByName(name);
@@ -153,6 +168,8 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     @Override
     public synchronized void setStatus(String name, boolean ready) throws RemoteException, AlcatrazServerException 
     {
+        masterLock();
+        
         l.info("Player " + name + " wants to set readystatus to " + ready);
         
         Player player = playerList.getPlayerByName(name);

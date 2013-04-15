@@ -92,8 +92,7 @@ public class SpreadServer implements ObjectChangedListner
          * If so, we assume that the connection is dead.
          * 
          */
-        connection.add(listener);
-                
+        connection.add(listener);                
     }
     
     public void sync()
@@ -113,8 +112,7 @@ public class SpreadServer implements ObjectChangedListner
          */
         
         boolean sync;
-        
-        
+                
         l.info("SPREAD: Sync...");
         
         synchronized(syncGroupMasterServerAddress)
@@ -255,8 +253,8 @@ public class SpreadServer implements ObjectChangedListner
         return i_am_MasterServer;
     }
 
-    public void setPlayerList(LinkedList<Player> ll) {
-        playerList.setLinkedList(ll);
+    public void setPlayerList(LinkedList<Player> playerList) {
+        this.playerList.setLinkedList(playerList);
     }
 
     public PlayerList getPlayerList() {
