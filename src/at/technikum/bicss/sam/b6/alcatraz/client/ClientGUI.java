@@ -6,10 +6,9 @@ package at.technikum.bicss.sam.b6.alcatraz.client;
 
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
-import at.technikum.bicss.sam.b6.alcatraz.server.spread.PlayerList;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Formatter;
 import javax.swing.DefaultListModel;
 import java.util.LinkedList;
@@ -25,22 +24,49 @@ import org.apache.log4j.spi.LoggingEvent;
 public class ClientGUI extends javax.swing.JFrame 
 {
 
-    private ClientHost hosthandle             = null;
-    private boolean    JBtn_Register_oldstate = false;
-    private Logger     l                      = Logger.getLogger(Util.getClientRMIPath());
-
+    private ClientHost    hosthandle             = null;
+    private boolean       JBtn_Register_oldstate = false;
+    private static Logger l                             = Util.getLogger();
+    private final Object  runUI                  = new Object();
+    private WindowAdapter exitListener           = new WindowAdapter()
+    {
+        @Override
+        public void windowClosing(WindowEvent e) 
+        {
+            synchronized(runUI)
+            {
+                runUI.notifyAll();
+            }
+        }
+    };
+    
     /**
      * Creates new form ClientGUI
      */
     public ClientGUI(ClientHost host) 
     {
-        initComponents();
         this.hosthandle = host;
+        
         Logger.getRootLogger().addAppender(this.new StatusMessageAppender());
-
+     
+        initComponents();
+        this.addWindowListener(exitListener);
+        
         Util.centerFrame(this);
     }
-
+    
+    public void waitForExit()
+    {
+        while(true)
+        {
+            synchronized(runUI)
+            {
+               try { runUI.wait(); break; } catch (InterruptedException e) { }
+               Thread.yield();
+            }
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -64,8 +90,8 @@ public class ClientGUI extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Alcatraz");
-        setMaximumSize(new java.awt.Dimension(326, 341));
-        setMinimumSize(new java.awt.Dimension(326, 341));
+        setMaximumSize(new java.awt.Dimension(326, 344));
+        setMinimumSize(new java.awt.Dimension(326, 344));
         setResizable(false);
 
         jTxtFld_PName.setMaximumSize(new java.awt.Dimension(6, 20));
@@ -81,6 +107,8 @@ public class ClientGUI extends javax.swing.JFrame
         });
 
         jLst_PlayerList.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        jLst_PlayerList.setMaximumSize(new java.awt.Dimension(306, 130));
+        jLst_PlayerList.setMinimumSize(new java.awt.Dimension(306, 130));
         jScrlPne.setViewportView(jLst_PlayerList);
 
         jLbl_PList.setText("Playerlist");
@@ -130,7 +158,6 @@ public class ClientGUI extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrlPne)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jBtn_Register, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -144,7 +171,8 @@ public class ClientGUI extends javax.swing.JFrame
                         .addComponent(jLbl_PList)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPnl_Status, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPnl_Status, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrlPne))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -164,8 +192,8 @@ public class ClientGUI extends javax.swing.JFrame
                     .addComponent(jBtn_Ready))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLbl_PList)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
-                .addComponent(jScrlPne, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
+                .addComponent(jScrlPne, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPnl_Status, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -254,7 +282,7 @@ public class ClientGUI extends javax.swing.JFrame
         
         if (pl != null) 
         {            
-            String maxlen = new String(Integer.toString(Util.NAME_MAX_LENGTH));
+            String maxlen = Integer.toString(Util.NAME_MAX_LENGTH);
                         
             for (Player p : pl) 
             {

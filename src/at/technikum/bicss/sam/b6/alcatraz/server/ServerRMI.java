@@ -26,7 +26,9 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
 
     private PlayerList    playerList;
     private SpreadServer  spreadServer;
-    static private Logger l = Util.getLogger();
+    private static Logger l = Util.getLogger();
+    private IServer       masterServer;
+    private String        masterServerAddr;
 
     public ServerRMI(SpreadServer spreadServer) throws RemoteException 
     {
@@ -45,46 +47,43 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
      * Broadcast the Player List to all Clients
      * 
      * Don't call this from un-synchronized Context!
+     * 
+     * @return success
      */
-    private void broadcastPlayerList() 
+    private boolean broadcastPlayerList() 
     {
         playerList.renumberIDs();
         l.info("SERVER: Broadcasting Playerlist");
             
-        boolean success;
+        boolean success = true;            
         
-        do
+        /*
+         * The Playerlist is sent to all Players
+         * If a Player disconnected, he is removed from the list
+         * and the list is retransmitted
+         * This is done until it succeeded once, or no clients are left.
+         */
+        for (Player p : playerList) 
         {
-            success = true;            
-            /*
-             * The Playerlist is sent to all Players
-             * If a Player disconnected, he is removed from the list
-             * and the list is retransmitted
-             * This is done until it succeeded once, or no clients are left.
-             */
-            for (Player p : playerList) 
+            String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
+                             Util.getClientRMIPath(), p.getName());
+            l.debug("SERVER: Send Playerlist to " + rmi_uri);
+
+            try 
             {
-                String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
-                                 Util.getClientRMIPath(), p.getName());
-                l.debug("SERVER: Send Playerlist to " + rmi_uri);
-                
-                try 
-                {
-                    IClient client = (IClient) Naming.lookup(rmi_uri);
-                    client.updatePlayerList(playerList.getLinkedList());
-                } 
-                catch (Exception e) 
-                {
-                    l.info("SERVER: Error while broadcasting playerlist:\n" + e.getMessage());
-                    l.info("SERVER: Deregistered unreachable Player: " + p.getName());
-                    playerList.remove(p);
-                    success = false;
-                }
-                
-                if(!success) { break; }
+                IClient client = (IClient) Naming.lookup(rmi_uri);
+                client.updatePlayerList(playerList.getLinkedList());
+            } 
+            catch (Exception e) 
+            {
+                l.info("SERVER: Error while broadcasting playerlist:\n" + e.getMessage());
+                l.info("SERVER: Deregistered unreachable Player: " + p.getName());
+                playerList.remove(p);
+                success = false;
             }
         }
-        while(!success);
+        
+        return success;
     }
     
     private void masterLock() throws RemoteException
@@ -98,16 +97,18 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     }
 
     @Override
+    @SuppressWarnings("empty-statement")
     public synchronized LinkedList<Player> getPlayerList() throws RemoteException
     {
         masterLock();
         
         // Check if all Players are still there and send the list to the newcommer
-        broadcastPlayerList();
+        while(!broadcastPlayerList());
         return playerList.getLinkedList();
     }
     
     @Override
+    @SuppressWarnings("empty-statement")
     public synchronized void register(String name, String address, int port) throws RemoteException, AlcatrazServerException 
     {
         masterLock();
@@ -137,7 +138,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         playerList.add(player);
 
         l.info("SERVER: Registered new Player:\n" + player.toString());
-        broadcastPlayerList();
+        while(!broadcastPlayerList());
     }
 
     @Override
@@ -161,7 +162,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         {
             playerList.remove(player);
             l.info("SERVER: Deregistered Player " + name);
-            broadcastPlayerList();
+            while(!broadcastPlayerList());
         }
     }
 
@@ -171,10 +172,9 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         masterLock();
         
         l.info("Player " + name + " wants to set readystatus to " + ready);
-        
         Player player = playerList.getPlayerByName(name);
 
-        // Put some anti-Session hijacking code here    
+        // Put some anti-Session hijacking code here     
         
         if (player == null) 
         {
@@ -185,13 +185,24 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         }
         else 
         {
+            boolean success;
             player.setReady(ready);
-            broadcastPlayerList();
-            if (playerList.allReady()) 
+            
+            do
             {
-                spreadServer.setPlayerList(new LinkedList());
-                playerList = spreadServer.getPlayerList();
-            }
+                success = broadcastPlayerList();
+                /*
+                if (playerList.allReady() && 
+                    playerList.count() >= Util.NUM_MIN_PLAYER) 
+                {
+                    spreadServer.setPlayerList(new LinkedList());
+                    playerList = spreadServer.getPlayerList();
+                    
+                    // Clients will start the game in that case anyway
+                    success = true; 
+                }*/
+            } while(!success);
+            
             playerList.triggerObjectChangedEvent();
         }
     }

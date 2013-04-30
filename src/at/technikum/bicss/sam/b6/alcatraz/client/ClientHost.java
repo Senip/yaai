@@ -4,17 +4,16 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.client;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.Player;
-import at.technikum.bicss.sam.b6.alcatraz.common.Move;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
-import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
-import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
-import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.MoveListener;
 import at.falb.games.alcatraz.api.Prisoner;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
+import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
+import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
+import at.technikum.bicss.sam.b6.alcatraz.common.Move;
+import at.technikum.bicss.sam.b6.alcatraz.common.Player;
+import at.technikum.bicss.sam.b6.alcatraz.common.Util;
+import at.technikum.bicss.sam.b6.alcatraz.server.spread.PlayerList;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -25,9 +24,11 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.logging.Level;
+import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -43,30 +44,71 @@ public class ClientHost implements MoveListener
     private Registry            rmireg     = null;
     private ClientGUI           gui        = null;
     private IServer             server     = null;
+    private String              rmiURI;
     private IClient             client     = null;
-    private LinkedList<Player>  playerlist = null;
+    private LinkedList<Player>  playerList = null;
     private Player              me         = null;
     private Alcatraz            actrz      = null;
-    private static Logger       l          = null;
+    private static Logger       l          = Util.getLogger();
+    private boolean             inGame     = false;
 
     public static void main(String[] args) 
     {
+        ClientHost client;
+                
         PropertyConfigurator.configure(Util.readProps());
         l = Util.setLogger(Util.getClientRMIPath());
-        new ClientHost();
+        
+        client = new ClientHost();
+        
+        l.info("Connecting...");
+        if(client.open())
+        {
+            // Wait until the User closes the Application
+            client.waitForExit();       
+        }
+        
+        // Clean Up
+        client.close();
+        l.info("Terminated.");
+        System.exit(0);
+        
     }
 
     public ClientHost() 
     {
         me  = new Player(null, 0, null, 0, false);
         gui = new ClientGUI(this);
+        
         gui.setVisible(true);
-
+    }
+    
+    public boolean open()
+    {
+        
+        // Contact Server and Setup RMI
         if(contactServer())
         {
             setupClientRMIReg();
             l.info("Alcatraz Client running on " + me.getAddress() + ":" + me.getPort());
+            return true;
         }
+        else
+        {
+            return false;
+        }
+    }
+    
+    public void waitForExit()
+    {        
+        gui.waitForExit();
+    }
+    
+    public void close()
+    {
+        try { UnicastRemoteObject.unexportObject(client, false); } catch (Exception e) { }
+        try { Naming.unbind(rmiURI);                             } catch (Exception e) { }
+        try { UnicastRemoteObject.unexportObject(client, true);  } catch (Exception e) { }
     }
 
     /**
@@ -93,8 +135,8 @@ public class ClientHost implements MoveListener
         l.info("Try to find server for registration process...");
         serveraddr  = null;
         serverport  = Util.getServerRMIPort();
-        Socket sock = null;
-        SocketAddress sock_addr = null;
+        Socket sock;
+        SocketAddress sock_addr;
 
         gui.lockRegisterBtn(true);
 
@@ -141,10 +183,10 @@ public class ClientHost implements MoveListener
                     l.debug("Lookup " + rmi_uri);
                     server  = (IServer) Naming.lookup(rmi_uri);
                 }
-                
+              
                 l.info("Reached master server at " + serveraddr + ":" + serverport);
                
-                gui.updatePlayerList(server.getPlayerList());                
+                gui.updatePlayerList(getPlayerList());                
                 gui.lockRegisterBtn(false);
                               
                 break;
@@ -260,12 +302,12 @@ public class ClientHost implements MoveListener
      * If the client's state is waiting but the Backbone was reset, this will 
      * cause unjustified errors.
      * 
-     * @return if player is registered
+     * @return if p is registered
      */
     public boolean isPlayerRegistered(String name) throws RemoteException
     {         
         boolean found = false;
-        for(Player p : server.getPlayerList())
+        for(Player p : getPlayerList())
         {
             found = found || name.equalsIgnoreCase(p.getName());
         } 
@@ -283,10 +325,10 @@ public class ClientHost implements MoveListener
      
         try 
         {
-            String rmi_uri = Util.buildRMIString(me.getAddress(), me.getPort(),
+            rmiURI = Util.buildRMIString(me.getAddress(), me.getPort(),
                     Util.getClientRMIPath(), name);
-            Naming.rebind(rmi_uri, client);
-            l.info("Bound client methods to " + rmi_uri);
+            Naming.rebind(rmiURI, client);
+            l.info("Bound client methods to " + rmiURI);
             Util.logRMIReg(rmireg);
             me.setName(name);
         } 
@@ -335,9 +377,7 @@ public class ClientHost implements MoveListener
         l.info("Try to remove player methods from registry");
         try 
         {
-            String rmi_uri = Util.buildRMIString(me.getAddress(), me.getPort(),
-                             Util.getClientRMIPath(), me.getName());
-            Naming.unbind(rmi_uri);
+            Naming.unbind(rmiURI);
             Util.logRMIReg(rmireg);
         } 
         catch (NotBoundException e) 
@@ -419,14 +459,8 @@ public class ClientHost implements MoveListener
                     if(!isPlayerRegistered(me.getName()))
                     {
                         l.debug("Client statemachine fixed");
-                        if(registerPlayer(me.getName()))
-                        {
-                            success = true;
-                        }
-                        else
-                        {
-                            unregisterPlayer();
-                        }
+                        l.error("Session expired. Please re-register!");
+                        success = true;
                     }
 
                     if(!success)
@@ -456,7 +490,7 @@ public class ClientHost implements MoveListener
             
             try 
             {  
-                gui.updatePlayerList(server.getPlayerList());
+                gui.updatePlayerList(getPlayerList());
             } 
             catch (RemoteException e) 
             {
@@ -465,10 +499,15 @@ public class ClientHost implements MoveListener
             }
         } while(retry);        
     }
+    
+    private LinkedList<Player> getPlayerList() throws RemoteException
+    {
+        return (this.playerList = server.getPlayerList());
+    }
 
     public void processPlayerList(LinkedList<Player> pl) 
     {
-        int ctr = 0;
+        int numPlayerReady = 0;
 
         for (Player p : pl) 
         {
@@ -481,7 +520,7 @@ public class ClientHost implements MoveListener
             // count how many players are ready
             if (p.isReady()) 
             {
-                ctr++;
+                numPlayerReady++;
             }
         }
 
@@ -489,97 +528,147 @@ public class ClientHost implements MoveListener
         // for easier distribution of moves
         Collections.reverse(pl);
         Collections.rotate(pl, me.getId());
-        playerlist = pl;
+        this.playerList = pl;
 
-        gui.updatePlayerList(playerlist);
+        gui.updatePlayerList(playerList);
 
         // if all players are ready 
         // AND there are at least 2 players
         // start the game 
-        if ((ctr == playerlist.size()) && (ctr >= 2)) 
+        if ((numPlayerReady == playerList.size()) && (numPlayerReady >= Util.NUM_MIN_PLAYER)) 
         {
-            l.info("Game ready!");
-            initGame();
+            l.debug("Game ready!");
+            
+            if(initGame(numPlayerReady))
+            {
+                this.inGame = true;
+                l.info("Starting the game...");
+                startGame();
+            }
+            else
+            {
+                updatePlayerList();
+                l.info("Init Game failed!");
+            }
         }
     }
 
-    private void initGame() 
+    public boolean isInGame() {
+        return inGame;
+    }
+    
+    private boolean initGame(int numPlayerReady)
     {
-        actrz = new Alcatraz();
-        actrz.init(playerlist.size(), me.getId());
-
-        if(retreivePlayerProxys())
+        PlayerList lostPlayer = retreivePlayerProxys();
+        int numPlayer         = numPlayerReady - lostPlayer.count();
+        boolean success       = (numPlayer == numPlayerReady);
+        
+        /*
+        if(!success)
         {
-            for (Player p : playerlist) 
+            StringBuilder sb = new StringBuilder();
+            sb.append("Could not connect to:\n");
+
+            for(Player p : lostPlayer)
             {
-                actrz.getPlayer(p.getId()).setName(p.getName());
+                sb.append(" ").append(p.getName());
             }
 
-            gui.setVisible(false);
-            /*
-             * set playername as title to distinguish several windows
-             */
-            actrz.getWindow().setTitle(
-                    actrz.getWindow().getTitle() + " - " + me.getName());
+            sb.append("Do you wan't to start a ");
+            sb.append(numPlayer).append(" player game?");
 
-            Util.centerFrame(actrz.getWindow());
-            actrz.showWindow();
-
-            actrz.addMoveListener(this);
-
-            actrz.start();
-        }
-        else
+            if(Util.yesnocancel(gui, sb.toString()) == JOptionPane.YES_OPTION)
+            {
+                success = true;
+            }
+            else
+            {
+                setReady(false);
+                l.info("Player disconnected.");
+            }
+        }*/
+        
+        return success;
+    }
+    
+    private void startGame()
+    {
+        actrz = new Alcatraz();
+        actrz.init(playerList.size(), me.getId());
+        
+        inGame = true;  // Lock RMI interface
+        
+        for (Player p : playerList) 
         {
-            updatePlayerList();
+            actrz.getPlayer(p.getId()).setName(p.getName());
         }
+
+        gui.setVisible(false);
+        
+        actrz.getWindow().setTitle(actrz.getWindow().getTitle() + " - " + me.getName());
+
+        Util.centerFrame(actrz.getWindow());
+        actrz.showWindow();
+
+        actrz.addMoveListener(this);
+
+        actrz.start();
     }
 
-    private boolean retreivePlayerProxys() 
+    private PlayerList retreivePlayerProxys() 
     {
-        boolean success = true;
-        
-        for (Player p : playerlist) 
+        int numPlayerReady = 0;
+        PlayerList lostPlayer = new PlayerList();
+               
+        for(Iterator<Player> i = playerList.iterator(); i.hasNext(); )
         {
-            if (p.getName().equals(me.getName())) 
+            Player player   = i.next();
+            boolean success = false;
+                        
+            if (player.getName().equals(me.getName())) 
             {
+                numPlayerReady++;
                 break;
             }
             
             try 
             {
-                String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(), Util.getClientRMIPath(), p.getName());
+                String rmi_uri = Util.buildRMIString(player.getAddress(), player.getPort(), Util.getClientRMIPath(), player.getName());
                 l.info("Obtaining proxy: " + rmi_uri);
                 IClient clientproxy = null;
                 clientproxy = (IClient) Naming.lookup(rmi_uri);
-                p.setProxy(clientproxy);
-                continue;
+                player.setProxy(clientproxy);
+                numPlayerReady++;
+                success = true;
             } 
             catch (NotBoundException e) 
             {
-                l.warn(Util.getClientRMIPath() + p.getName()
+                l.debug(Util.getClientRMIPath() + player.getName()
                         + " seems to be not bound on "
-                        + p.getAddress() + ":" + p.getPort(), e);
+                        + player.getAddress() + ":" + player.getPort(), e);
             } 
             catch (RemoteException e) 
             {
-                l.warn(p.getAddress() + ":" + p.getPort(), e);
+                l.debug(player.getAddress() + ":" + player.getPort(), e);
             } 
             catch (MalformedURLException e) 
             {
-                l.warn(e.getMessage(), e);
+                l.debug(e.getMessage(), e);
             }
             
-            success = false;
-            break;
+            if(!success)
+            {
+                l.debug("Contacted player " + player.getName() + "failed. (removed)");
+                lostPlayer.add(player);
+                i.remove();
+            }
+            
         }
         
-        if(!success)
-        {
-            l.error("Starting the Game failed\nSome Player seem not be ready");
-        }
-        
-        return success;
+        l.debug("Number of ready player: " + numPlayerReady);
+        l.debug(playerList.toString());
+                
+        return lostPlayer;
     }
 
     public void processMove(Move m) 
@@ -596,7 +685,7 @@ public class ClientHost implements MoveListener
         Move move = new Move(player, prsnr, i, i1, i2);
         l.trace(move.toString());
 
-        for (Player p : playerlist) 
+        for (Player p : playerList) 
         {
             if (p.getName().equals(me.getName())) 
             {
@@ -615,6 +704,8 @@ public class ClientHost implements MoveListener
                 {
                     l.warn(p.getAddress() + ":" + p.getPort(), e);
                 }
+                
+                Thread.yield();
             }
         }
     }
@@ -630,8 +721,8 @@ public class ClientHost implements MoveListener
         gui.setVisible(true);
         Util.warnUser(gui, (player.getName() + " has won the game"));
         
-        playerlist = new LinkedList();
-        gui.updatePlayerList(playerlist);
+        playerList = new LinkedList();
+        gui.updatePlayerList(playerList);
         gui.reset();
     }
 }

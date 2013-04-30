@@ -7,7 +7,6 @@ package at.technikum.bicss.sam.b6.alcatraz.server;
 import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.Spread;
-import at.technikum.bicss.sam.b6.alcatraz.server.spread.SpreadServer;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -57,13 +56,13 @@ public class ServerHost
         Registry     rmireg       = null;
         String       rmiURI       = "";
         
-        ServerUI.banner();
-        
         PropertyConfigurator.configure(Util.readProps());
         l = Util.setLogger(Util.getServerRMIPath());
-                
+        
         int port = Util.getServerRMIPort();
-        System.setProperty("java.rmi.server.hostname", Util.getMyServerAddress());     
+        System.setProperty("java.rmi.server.hostname", Util.getMyServerAddress());  
+                
+        ServerUI.banner();   
         
         // 1. Connect to Spread
         Spread.open();

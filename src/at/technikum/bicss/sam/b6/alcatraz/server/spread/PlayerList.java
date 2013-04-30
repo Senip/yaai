@@ -20,7 +20,7 @@ import java.util.List;
 public class PlayerList implements Serializable, Iterable<Player> 
 {
 
-    private LinkedList<Player> player_list = new LinkedList();
+    private LinkedList<Player> playerList = new LinkedList();
     
     // add event listners to avoid nested instance mess
     private List event_listeners = new ArrayList();
@@ -50,13 +50,13 @@ public class PlayerList implements Serializable, Iterable<Player>
     @Override
     public Iterator iterator() 
     {
-        return player_list.iterator();
+        return playerList.iterator();
     }
 
     // wrapper for add on linkedlist
     public void add(Player p) 
     {
-        player_list.add(p);
+        playerList.add(p);
         // fire changed event
         triggerObjectChangedEvent();
     }
@@ -64,24 +64,24 @@ public class PlayerList implements Serializable, Iterable<Player>
     // wrapper for remove on linkedlist
     public void remove(Player p) 
     {
-        player_list.remove(p);
+        playerList.remove(p);
         // fire changed event
         triggerObjectChangedEvent();
     }
 
     public LinkedList<Player> getLinkedList() 
     {
-        return player_list;
+        return playerList;
     }
 
     public void setLinkedList(LinkedList<Player> ll) 
     {
-        player_list = ll;
+        playerList = ll;
     }
 
     public void renumberIDs() 
     {
-        Iterator<Player> it = player_list.iterator();
+        Iterator<Player> it = playerList.iterator();
         
         int ctr = 0;
         for (ctr = 0; it.hasNext(); ctr++) 
@@ -95,7 +95,7 @@ public class PlayerList implements Serializable, Iterable<Player>
         boolean ready = false;
         int ctr = 0;
         
-        for (Player p : player_list) 
+        for (Player p : playerList) 
         {
             // count how many players are ready
             if (p.isReady()) 
@@ -104,16 +104,21 @@ public class PlayerList implements Serializable, Iterable<Player>
             }
         }
         
-        if ((ctr == player_list.size()) && (ctr >= 2)) 
+        if ((ctr == playerList.size())) 
         {
             ready = true;
         }
         return ready;
     }
     
+    public int count()
+    {
+        return playerList.size();
+    }
+    
     public Player getPlayerByName(String name)
     {
-        for (Player p : player_list) 
+        for (Player p : playerList) 
         {
             if (p.getName().equals(name)) 
             {

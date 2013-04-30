@@ -26,6 +26,7 @@ public final class Util
     //General Properties
     private final static String CONNECTION_TIMEOUT = "connection_timeout_ms";
     public  final static int    NAME_MAX_LENGTH    = 13;
+    public  final static int    NUM_MIN_PLAYER     = 2;
     public  final static int    NUM_MAX_PLAYER     = 4;
     
     // Client Properties
@@ -318,5 +319,11 @@ public final class Util
         //l.finer("Display warning message to user");
         JOptionPane.showMessageDialog(frm, message,
                 "Warning", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    
+    public static int yesnocancel(JFrame frm, String theMessage) 
+    {
+        return JOptionPane.showConfirmDialog(frm, theMessage,"Question", JOptionPane.YES_NO_CANCEL_OPTION);
     }
 }
