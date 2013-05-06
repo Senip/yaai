@@ -5,6 +5,11 @@
 package at.technikum.bicss.sam.b6.alcatraz.common;
 
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.UUID;
 
 /**
  *
@@ -12,11 +17,11 @@ import java.io.Serializable;
  */
 public class Player extends at.falb.games.alcatraz.api.Player implements Serializable 
 {
-    private String  UUID;
     private String  address;
     private int     port;
     private boolean ready;
     private IClient proxy;
+    private String  rmiURI;
 
     public Player(String name, int id, String address, int port, boolean ready) 
     {
@@ -34,6 +39,8 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
 
     public void setAddress(String address) {
         this.address = address;
+        this.rmiURI  = null;
+        this.proxy   = null;
     }
 
     public int getPort() {
@@ -41,9 +48,36 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
     }
 
     public void setPort(int port) {
-        this.port = port;
+        this.port    = port;
+        this.rmiURI  = null;
+        this.proxy   = null;
     }
-
+    
+    public void setProxy(IClient proxy) {
+        this.proxy = proxy;
+    }
+    
+     public IClient getProxy() {
+        return proxy;
+    }
+     
+    public String getRmiURI()
+    {
+        if(this.rmiURI == null)
+        {
+            this.rmiURI = Util.buildRMIString(this.address, this.port,
+                          Util.getClientRMIPath(), super.getName());
+        }
+        
+        return this.rmiURI;
+    }
+    
+    public String getRmiURI(String name)
+    {
+        return this.rmiURI = Util.buildRMIString(this.address, this.port,
+                             Util.getClientRMIPath(), name);
+    }
+              
     public boolean isReady() {
         return ready;
     }
@@ -51,23 +85,7 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
     public void setReady(boolean ready) {
         this.ready = ready;
     }
-
-    public IClient getProxy() {
-        return proxy;
-    }
-
-    public void setProxy(IClient proxy) {
-        this.proxy = proxy;
-    }
-
-    public String getUUID() {
-        return UUID;
-    }
-
-    public void setUUID(String UUID) {
-        this.UUID = UUID;
-    }
-       
+    
     @Override
     public String toString() 
     {

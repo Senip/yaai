@@ -25,8 +25,11 @@ public class ClientGUI extends javax.swing.JFrame
 {
 
     private ClientHost    hosthandle             = null;
-    private boolean       JBtn_Register_oldstate = false;
-    private static Logger l                             = Util.getLogger();
+    private boolean       lock                   = false;
+    private boolean       JBtn_Register_oldstate = true;
+    private boolean       JBtn_Ready_oldstate    = false;
+    private boolean       jTxtFld_PName_oldstate = true;
+    private static Logger l                      = Util.getLogger();
     private final Object  runUI                  = new Object();
     private WindowAdapter exitListener           = new WindowAdapter()
     {
@@ -48,10 +51,9 @@ public class ClientGUI extends javax.swing.JFrame
         this.hosthandle = host;
         
         Logger.getRootLogger().addAppender(this.new StatusMessageAppender());
-     
+             
         initComponents();
         this.addWindowListener(exitListener);
-        
         Util.centerFrame(this);
     }
     
@@ -94,19 +96,21 @@ public class ClientGUI extends javax.swing.JFrame
         setMinimumSize(new java.awt.Dimension(326, 344));
         setResizable(false);
 
+        jTxtFld_PName.setEditable(jTxtFld_PName_oldstate);
         jTxtFld_PName.setMaximumSize(new java.awt.Dimension(6, 20));
 
         jLbl_PName.setText("Playername:");
 
         jBtn_Register.setText("Register");
         jBtn_Register.setActionCommand("register");
+        jBtn_Register.setEnabled(JBtn_Register_oldstate);
         jBtn_Register.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ButtonActionPerformed(evt);
             }
         });
 
-        jLst_PlayerList.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        jLst_PlayerList.setFont(jLst_PlayerList.getFont().deriveFont(jLst_PlayerList.getFont().getSize()+1f));
         jLst_PlayerList.setMaximumSize(new java.awt.Dimension(306, 130));
         jLst_PlayerList.setMinimumSize(new java.awt.Dimension(306, 130));
         jScrlPne.setViewportView(jLst_PlayerList);
@@ -115,7 +119,7 @@ public class ClientGUI extends javax.swing.JFrame
 
         jBtn_Ready.setText("Ready!");
         jBtn_Ready.setActionCommand("ready");
-        jBtn_Ready.setEnabled(false);
+        jBtn_Ready.setEnabled(JBtn_Ready_oldstate);
         jBtn_Ready.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ButtonActionPerformed(evt);
@@ -144,7 +148,7 @@ public class ClientGUI extends javax.swing.JFrame
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        jLabel1.setFont(new java.awt.Font("Calibri", 0, 36)); // NOI18N
+        jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getSize()+25f));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("yaai");
 
@@ -309,9 +313,9 @@ public class ClientGUI extends javax.swing.JFrame
      * 
      * (Un-)lock the register Button
      * 
-     * @param lock if th button is locked
+     * @param lock if the button is locked
      */
-    public void lockRegisterBtn(boolean lock) 
+    private void lockRegisterBtn(boolean lock) 
     {
         if (lock == true) 
         {
@@ -321,6 +325,58 @@ public class ClientGUI extends javax.swing.JFrame
         else 
         {
             jBtn_Register.setEnabled(JBtn_Register_oldstate);
+        }
+    }
+    
+    /**
+     * 
+     * (Un-)lock the ready Button
+     * 
+     * @param lock if the button is locked
+     */
+    private void lockReadyBtn(boolean lock) 
+    {
+        if (lock == true) 
+        {
+            JBtn_Ready_oldstate = jBtn_Ready.isEnabled();
+            jBtn_Ready.setEnabled(false);
+        } 
+        else 
+        {
+            jBtn_Ready.setEnabled(JBtn_Ready_oldstate);
+        }
+    }
+    
+    /**
+     * 
+     * (Un-)lock the name textfield
+     * 
+     * @param lock if the field is locked
+     */
+    private void lockNameFld(boolean lock) 
+    {
+        if (lock == true) 
+        {
+            jTxtFld_PName_oldstate = jTxtFld_PName.isEditable();
+            jTxtFld_PName.setEditable(false);
+        } 
+        else 
+        {
+            jTxtFld_PName.setEditable(jTxtFld_PName_oldstate);
+        }
+    }
+    
+    public void lock(boolean lock)
+    {
+            l.debug((lock ? "" : "Un") + "Lock UI");
+        if(this.lock != lock)
+        {
+            this.lock = lock;
+            
+            
+            lockRegisterBtn(lock); 
+            lockReadyBtn(lock); 
+            lockNameFld(lock); 
         }
     }
 

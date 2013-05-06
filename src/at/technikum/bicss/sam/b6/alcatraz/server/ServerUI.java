@@ -36,7 +36,7 @@ public class ServerUI
     
     public static void run()
     {
-        String str ="";
+        String str;
         Scanner in = new Scanner(System.in); 
         
         do
@@ -45,14 +45,26 @@ public class ServerUI
             {
                 System.out.print("> ");
 
-                try{ str = in.nextLine(); } catch(Exception e) { /*Ctrl+C*/ }
+                do
+                {
+                    try
+                    { 
+                        str = in.nextLine(); 
+                        break;
+                    } 
+                    catch(Exception e) // Ctrl+C
+                    { 
+                        continue; 
+                    }
+                } while(true);
+                
                 str = str.trim();
                 
             } while(str.isEmpty());
                         
             switch(str.toLowerCase())
             {
-                case "player":   System.out.println(user());
+                case "player": System.out.println(user());
                 break;
                 case "master": System.out.println(master());
                 break;

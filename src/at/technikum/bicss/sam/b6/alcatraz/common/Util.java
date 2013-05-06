@@ -320,10 +320,9 @@ public final class Util
         JOptionPane.showMessageDialog(frm, message,
                 "Warning", JOptionPane.WARNING_MESSAGE);
     }
-    
-    
-    public static int yesnocancel(JFrame frm, String theMessage) 
+        
+    public static int yesnocancel(JFrame frm, String message) 
     {
-        return JOptionPane.showConfirmDialog(frm, theMessage,"Question", JOptionPane.YES_NO_CANCEL_OPTION);
+        return JOptionPane.showConfirmDialog(frm, message,"Question", JOptionPane.YES_NO_CANCEL_OPTION);
     }
 }

@@ -9,6 +9,7 @@ import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.Spread;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -105,7 +106,7 @@ public class ServerHost
         {  
             server = (IServer) Naming.lookup(rmiURI);
         } 
-        catch (Exception e) 
+        catch (NotBoundException | MalformedURLException | RemoteException e) 
         {
             success = false;
         }

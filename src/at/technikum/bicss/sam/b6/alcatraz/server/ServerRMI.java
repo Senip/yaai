@@ -4,6 +4,7 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.server;
 
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientException;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
@@ -11,9 +12,12 @@ import at.technikum.bicss.sam.b6.alcatraz.common.Player;
 import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.PlayerList;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.SpreadServer;
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Iterator;
 import java.util.LinkedList;
 import org.apache.log4j.Logger;
 
@@ -52,36 +56,85 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
      */
     private boolean broadcastPlayerList() 
     {
+        return broadcastPlayerList(null);
+    }
+    
+    private boolean broadcastPlayerList(Player firstPlayer) 
+    {
         playerList.renumberIDs();
         l.info("SERVER: Broadcasting Playerlist");
-            
-        boolean success = true;            
         
-        /*
-         * The Playerlist is sent to all Players
-         * If a Player disconnected, he is removed from the list
-         * and the list is retransmitted
-         * This is done until it succeeded once, or no clients are left.
-         */
-        for (Player p : playerList) 
+        boolean isFirstPlayer = true;
+        boolean success       = true;            
+        
+        do
         {
-            String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
-                             Util.getClientRMIPath(), p.getName());
-            l.debug("SERVER: Send Playerlist to " + rmi_uri);
+            /*
+             * The Playerlist is sent to all Players
+             * If a Player disconnected, he is removed from the list
+             * and the list is retransmitted
+             * This is done until it succeeded once, or no clients are left.
+             */          
+            for(Iterator<Player> i = playerList.iterator(); i.hasNext(); )
+            {
+                Player p;
 
-            try 
-            {
-                IClient client = (IClient) Naming.lookup(rmi_uri);
-                client.updatePlayerList(playerList.getLinkedList());
-            } 
-            catch (Exception e) 
-            {
-                l.info("SERVER: Error while broadcasting playerlist:\n" + e.getMessage());
-                l.info("SERVER: Deregistered unreachable Player: " + p.getName());
-                playerList.remove(p);
-                success = false;
+                if(isFirstPlayer && firstPlayer != null)
+                {
+                    p = firstPlayer;
+                }
+                else
+                {
+                    p = i.next();                
+                    if(p == firstPlayer)
+                    {
+                        continue;
+                    }
+                }
+
+                String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
+                                 Util.getClientRMIPath(), p.getName());
+                l.debug("SERVER: Send Playerlist to " + rmi_uri);
+
+                try 
+                {
+                    IClient client = (IClient) Naming.lookup(rmi_uri);
+                    client.updatePlayerList(playerList.getLinkedList(), false);
+                }
+                catch (AlcatrazClientException e)
+                {
+                    l.info("SERVER: Client Error:\n" + e.getMessage());
+
+                    if(isFirstPlayer)
+                    {
+                        p.setReady(false);
+                        success = false;
+                    }
+                    else
+                    {
+                        // First Client was able to reach all Players
+                        // We're now inGame
+                    }
+                }
+                catch (NotBoundException | MalformedURLException | RemoteException e) 
+                {
+                    l.info("SERVER: Error while broadcasting playerlist:\n" + e.getMessage());
+                    l.info("SERVER: Deregistered unreachable Player: " + p.getName());
+                    i.remove();
+                    success = false;
+                }
+
+                if( isFirstPlayer && !success )
+                {
+                    // Re-Send PlayerList to first Player...
+                    break;
+                }
+                else
+                {
+                    isFirstPlayer = false;
+                }
             }
-        }
+        } while(isFirstPlayer); // ...until it works
         
         return success;
     }
@@ -103,13 +156,13 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         masterLock();
         
         // Check if all Players are still there and send the list to the newcommer
-        while(!broadcastPlayerList());
+        // while(!broadcastPlayerList());
         return playerList.getLinkedList();
     }
     
     @Override
     @SuppressWarnings("empty-statement")
-    public synchronized void register(String name, String address, int port) throws RemoteException, AlcatrazServerException 
+    public synchronized Player register(String name, String address, int port) throws RemoteException, AlcatrazServerException 
     {
         masterLock();
         
@@ -134,11 +187,26 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
             l.warn(e.getMessage());
             throw e;
         }
-
+        
+        try // Check incomming connection
+        {
+            Naming.lookup(player.getRmiURI());
+        }
+        catch(NotBoundException | MalformedURLException | RemoteException ex)
+        {
+            AlcatrazServerException e =
+                    new AlcatrazServerException("Failed to connect!\n"
+                    + ex.getMessage());
+            l.warn(e.getMessage());
+            throw e;            
+        }
+        
         playerList.add(player);
 
         l.info("SERVER: Registered new Player:\n" + player.toString());
         while(!broadcastPlayerList());
+        
+        return player;
     }
 
     @Override
@@ -150,8 +218,6 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         
         Player player = playerList.getPlayerByName(name);
         
-        // Put some anti-Session hijacking code here        
-        
         if (player == null) 
         {
             AlcatrazServerException e = new AlcatrazServerException("Playername " + name + " not found!");
@@ -162,7 +228,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         {
             playerList.remove(player);
             l.info("SERVER: Deregistered Player " + name);
-            while(!broadcastPlayerList());
+            while(!broadcastPlayerList()) {};
         }
     }
 
@@ -174,8 +240,6 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         l.info("Player " + name + " wants to set readystatus to " + ready);
         Player player = playerList.getPlayerByName(name);
 
-        // Put some anti-Session hijacking code here     
-        
         if (player == null) 
         {
             AlcatrazServerException e = 
@@ -185,24 +249,18 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         }
         else 
         {
-            boolean success;
             player.setReady(ready);
             
-            do
-            {
-                success = broadcastPlayerList();
-                /*
-                if (playerList.allReady() && 
-                    playerList.count() >= Util.NUM_MIN_PLAYER) 
-                {
-                    spreadServer.setPlayerList(new LinkedList());
-                    playerList = spreadServer.getPlayerList();
-                    
-                    // Clients will start the game in that case anyway
-                    success = true; 
-                }*/
-            } while(!success);
+            // Broadcast Player List: Start with player
+            while(!broadcastPlayerList(player)) {};
             
+            // If Game started
+            if (playerList.allReady() && 
+                playerList.count() >= Util.NUM_MIN_PLAYER) 
+            {
+                spreadServer.setPlayerList(new LinkedList());
+                playerList = spreadServer.getPlayerList();
+            }
             playerList.triggerObjectChangedEvent();
         }
     }

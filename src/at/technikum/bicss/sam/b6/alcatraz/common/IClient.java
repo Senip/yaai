@@ -14,16 +14,11 @@ import java.util.LinkedList;
  */
 public interface IClient extends Remote
 {   
-    
-    //public void announce(String address, int port)      throws RemoteException;
 
-    public void updatePlayerList(LinkedList<Player> pl) throws RemoteException;
+    public void updatePlayerList(LinkedList<Player> playerList, boolean inGame) 
+            throws RemoteException, AlcatrazClientException;
 
-    //public void myTurn()                                throws RemoteException;
-    public void doMove(Move m)                          throws RemoteException;
-
-    //public void isOffline()                             throws RemoteException;
-    //public void isAlive()                               throws RemoteException;
-
+    public void doMove(Move m)                          
+            throws RemoteException, AlcatrazClientException;
     
 }
