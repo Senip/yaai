@@ -8,12 +8,12 @@ package at.technikum.bicss.sam.b6.alcatraz.common;
  *
  * @author 
  */
-public class AlcatrazClientException extends Exception {
+public class AlcatrazClientInitGameException extends Exception {
 
     /**
      * Alcatraz Server Exception
      */
-    public AlcatrazClientException() {
+    public AlcatrazClientInitGameException() {
     }
 
     /**     
@@ -21,7 +21,7 @@ public class AlcatrazClientException extends Exception {
      * 
      * @param msg the detail message.
      */
-    public AlcatrazClientException(String msg) {
+    public AlcatrazClientInitGameException(String msg) {
         super(msg);
     }
 }

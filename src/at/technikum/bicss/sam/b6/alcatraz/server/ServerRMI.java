@@ -4,7 +4,8 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.server;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientException;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
@@ -65,10 +66,13 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         l.info("SERVER: Broadcasting Playerlist");
         
         boolean isFirstPlayer = true;
-        boolean success       = true;            
+        boolean success       = true;    
+        boolean retry;
         
         do
         {
+            retry = false;
+            
             /*
              * The Playerlist is sent to all Players
              * If a Player disconnected, he is removed from the list
@@ -94,20 +98,21 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
 
                 String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
                                  Util.getClientRMIPath(), p.getName());
-                l.debug("SERVER: Send Playerlist to " + rmi_uri);
+                l.debug("SERVER: Send Playerlist to \n" + rmi_uri);
 
                 try 
                 {
                     IClient client = (IClient) Naming.lookup(rmi_uri);
                     client.updatePlayerList(playerList.getLinkedList(), false);
                 }
-                catch (AlcatrazClientException e)
+                catch (AlcatrazClientInitGameException e)
                 {
-                    l.info("SERVER: Client Error:\n" + e.getMessage());
+                    l.info("SERVER: Client Error: " + e.getMessage());
 
                     if(isFirstPlayer)
                     {
                         p.setReady(false);
+                        retry   = true;
                         success = false;
                     }
                     else
@@ -116,25 +121,34 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
                         // We're now inGame
                     }
                 }
+                catch(AlcatrazClientStateException e)
+                {
+                    l.info("SERVER: Deregistered Player '" + p.getName() + "' (is allready inGame)");
+                    success = false;
+                }
                 catch (NotBoundException | MalformedURLException | RemoteException e) 
                 {
                     l.info("SERVER: Error while broadcasting playerlist:\n" + e.getMessage());
-                    l.info("SERVER: Deregistered unreachable Player: " + p.getName());
-                    i.remove();
                     success = false;
                 }
 
-                if( isFirstPlayer && !success )
+                if(retry)
                 {
                     // Re-Send PlayerList to first Player...
                     break;
                 }
-                else
-                {
-                    isFirstPlayer = false;
+                
+                if(!success)    
+                {              
+                    l.info("SERVER: Deregistered unreachable Player: " + p.getName());      
+                    i.remove();
+                    break;
                 }
+                
+                isFirstPlayer = false;
             }
-        } while(isFirstPlayer); // ...until it works
+            
+        } while(retry); // ...until it works
         
         return success;
     }
@@ -150,7 +164,6 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     }
 
     @Override
-    @SuppressWarnings("empty-statement")
     public synchronized LinkedList<Player> getPlayerList() throws RemoteException
     {
         masterLock();
@@ -161,7 +174,6 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     }
     
     @Override
-    @SuppressWarnings("empty-statement")
     public synchronized Player register(String name, String address, int port) throws RemoteException, AlcatrazServerException 
     {
         masterLock();
@@ -172,7 +184,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         if (playerList.getPlayerByName(name) != null) 
         {
             AlcatrazServerException e =
-                new AlcatrazServerException("Player with name " + name + " already registered.\n"
+                new AlcatrazServerException("Player with name '" + name + "' already registered.\n"
                                           + "Name must be unique, please use a different name.");
             l.warn(e.getMessage());
             throw e;
@@ -188,14 +200,14 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
             throw e;
         }
         
-        try // Check incomming connection
+        try // Check inbound connection
         {
             Naming.lookup(player.getRmiURI());
         }
         catch(NotBoundException | MalformedURLException | RemoteException ex)
         {
             AlcatrazServerException e =
-                    new AlcatrazServerException("Failed to connect!\n"
+                    new AlcatrazServerException("Failed to connect (Check your firewall inbound rules)!\n"
                     + ex.getMessage());
             l.warn(e.getMessage());
             throw e;            
@@ -204,7 +216,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         playerList.add(player);
 
         l.info("SERVER: Registered new Player:\n" + player.toString());
-        while(!broadcastPlayerList());
+        while(!broadcastPlayerList()) { };
         
         return player;
     }
@@ -214,20 +226,20 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     {
         masterLock();
         
-        l.info("SERVER: Player wants to deregister" + name);
+        l.info("SERVER: Player '" + name + "'wants to deregister");
         
         Player player = playerList.getPlayerByName(name);
         
         if (player == null) 
         {
-            AlcatrazServerException e = new AlcatrazServerException("Playername " + name + " not found!");
+            AlcatrazServerException e = new AlcatrazServerException("Playername '" + name + "' not found!");
             l.warn(e.getMessage());
             throw e;
         } 
         else 
         {
             playerList.remove(player);
-            l.info("SERVER: Deregistered Player " + name);
+            l.info("SERVER: Deregistered Player '" + name + "'");
             while(!broadcastPlayerList()) {};
         }
     }
@@ -237,13 +249,13 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     {
         masterLock();
         
-        l.info("Player " + name + " wants to set readystatus to " + ready);
+        l.info("SERVER: Player '" + name + "' wants to set readystatus to " + (ready ? "'ready'" : "'wait'"));
         Player player = playerList.getPlayerByName(name);
 
         if (player == null) 
         {
             AlcatrazServerException e = 
-                    new AlcatrazServerException("Playername " + name + " not found!");
+                    new AlcatrazServerException("Playername '" + name + "' not found!");
             l.warn(e.getMessage());
             throw e;
         }
@@ -251,16 +263,23 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         {
             player.setReady(ready);
             
-            // Broadcast Player List: Start with player
+            // Broadcast Player List: Start with player            
             while(!broadcastPlayerList(player)) {};
             
-            // If Game started
-            if (playerList.allReady() && 
-                playerList.count() >= Util.NUM_MIN_PLAYER) 
+            if(!player.isReady())                       // Game start failed
+            {
+                AlcatrazServerException e = 
+                        new AlcatrazServerException("Game start failed. Please try again!");
+                l.warn(e.getMessage());
+                throw e;
+            } 
+            else if (playerList.allReady() &&           // If Game started
+                     playerList.count() >= Util.NUM_MIN_PLAYER) 
             {
                 spreadServer.setPlayerList(new LinkedList());
                 playerList = spreadServer.getPlayerList();
             }
+            
             playerList.triggerObjectChangedEvent();
         }
     }

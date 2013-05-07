@@ -92,7 +92,6 @@ public class ClientGUI extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Alcatraz");
-        setMaximumSize(new java.awt.Dimension(326, 344));
         setMinimumSize(new java.awt.Dimension(326, 344));
         setResizable(false);
 
@@ -368,15 +367,14 @@ public class ClientGUI extends javax.swing.JFrame
     
     public void lock(boolean lock)
     {
-            l.debug((lock ? "" : "Un") + "Lock UI");
         if(this.lock != lock)
         {
             this.lock = lock;
-            
-            
+            /*
             lockRegisterBtn(lock); 
             lockReadyBtn(lock); 
             lockNameFld(lock); 
+            * */
         }
     }
 
@@ -388,12 +386,15 @@ public class ClientGUI extends javax.swing.JFrame
         jBtn_Register.setText("Register");
         jBtn_Register.setActionCommand("register");
         jBtn_Register.setEnabled(true);
+        JBtn_Register_oldstate = true;
 
         jBtn_Ready.setText("Ready!");
         jBtn_Ready.setActionCommand("ready");
         jBtn_Ready.setEnabled(false);
+        JBtn_Ready_oldstate = false;
 
         jTxtFld_PName.setEditable(true);
+        jTxtFld_PName_oldstate  = true;
         
     }
 

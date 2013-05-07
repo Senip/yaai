@@ -4,7 +4,8 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.client;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientException;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.Move;
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
@@ -38,7 +39,8 @@ public class ClientRMI extends UnicastRemoteObject implements IClient
     }
 
     @Override
-    public synchronized void updatePlayerList(LinkedList<Player> playerList, boolean inGame) throws RemoteException, AlcatrazClientException 
+    public synchronized void updatePlayerList(LinkedList<Player> playerList, boolean inGame) 
+            throws RemoteException, AlcatrazClientInitGameException, AlcatrazClientStateException
     {            
         if(!hosthandle.isInGame()) 
         {
@@ -47,12 +49,12 @@ public class ClientRMI extends UnicastRemoteObject implements IClient
         else // Ignore if inGame
         {
             l.debug("Received playerlist although already in game!");
-            throw new AlcatrazClientException("Already in game");
+            throw new AlcatrazClientStateException("Already in game");
         }
     }
 
     @Override
-    public synchronized void doMove(Move m) throws RemoteException, AlcatrazClientException
+    public synchronized void doMove(Move m) throws RemoteException, AlcatrazClientStateException
     {        
         if(hosthandle.isInGame()) 
         {
@@ -61,7 +63,7 @@ public class ClientRMI extends UnicastRemoteObject implements IClient
         else // Ignore if not inGame
         {
             l.debug("Received move although not in game!");
-            throw new AlcatrazClientException("Not in game");
+            throw new AlcatrazClientStateException("Not in game");
         }
     }
 }

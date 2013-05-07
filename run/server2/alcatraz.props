@@ -16,7 +16,7 @@ client_rmireg_path=Alcatraz/Client
 ################################################################################
 # Server properties
 ################################################################################
-my_server_host_address=192.168.55.222
+my_server_host_address=192.168.55.247
 server_rmireg_port=1099
 server_rmireg_path=Alcatraz/Server
 spread_server_address=localhost

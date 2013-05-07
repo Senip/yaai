@@ -37,6 +37,7 @@ public final class Util
     private final static int    CLIENT_RMIREG_PORT_MAX  = 65535;
     public  final static int    CLIENT_RMIREG_RETRY_MAX = (CLIENT_RMIREG_PORT_MAX -
                                                            CLIENT_RMIREG_PORT_MIN);
+    public  final static int    SERVER_BUSY_TIMEOUT     = 500; //ms
 
     // Server Properties
     public  final static String MY_SERVER_ADDRESS  = "my_server_host_address";

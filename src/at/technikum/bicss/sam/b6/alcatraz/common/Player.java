@@ -33,31 +33,37 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
         this.proxy   = null;
     }       
 
-    public String getAddress() {
+    public String getAddress() 
+    {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(String address) 
+    {
         this.address = address;
         this.rmiURI  = null;
         this.proxy   = null;
     }
 
-    public int getPort() {
+    public int getPort() 
+    {
         return port;
     }
 
-    public void setPort(int port) {
+    public void setPort(int port) 
+    {
         this.port    = port;
         this.rmiURI  = null;
         this.proxy   = null;
     }
     
-    public void setProxy(IClient proxy) {
+    public void setProxy(IClient proxy) 
+    {
         this.proxy = proxy;
     }
     
-     public IClient getProxy() {
+    public IClient getProxy() 
+    {
         return proxy;
     }
      
@@ -78,11 +84,13 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
                              Util.getClientRMIPath(), name);
     }
               
-    public boolean isReady() {
+    public boolean isReady() 
+    {
         return ready;
     }
 
-    public void setReady(boolean ready) {
+    public void setReady(boolean ready) 
+    {
         this.ready = ready;
     }
     
