@@ -4,7 +4,7 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.client;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazInitGameException;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.Move;
@@ -40,7 +40,7 @@ public class ClientRMI extends UnicastRemoteObject implements IClient
 
     @Override
     public synchronized void updatePlayerList(LinkedList<Player> playerList, boolean inGame) 
-            throws RemoteException, AlcatrazClientInitGameException, AlcatrazClientStateException
+            throws RemoteException, AlcatrazInitGameException, AlcatrazClientStateException
     {            
         if(!hosthandle.isInGame()) 
         {
@@ -65,5 +65,11 @@ public class ClientRMI extends UnicastRemoteObject implements IClient
             l.debug("Received move although not in game!");
             throw new AlcatrazClientStateException("Not in game");
         }
+    }
+    
+    @Override
+    public void isAlive()
+    {
+        
     }
 }

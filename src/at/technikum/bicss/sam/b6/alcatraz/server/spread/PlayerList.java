@@ -5,6 +5,7 @@
 package at.technikum.bicss.sam.b6.alcatraz.server.spread;
 
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
+import at.technikum.bicss.sam.b6.alcatraz.common.Util;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedEvent;
 import at.technikum.bicss.sam.b6.alcatraz.server.spread.events.ObjectChangedListner;
 import java.io.Serializable;
@@ -19,7 +20,7 @@ import java.util.List;
  */
 public class PlayerList implements Serializable, Iterable<Player> 
 {
-
+    private int numPlayerReady            = -1;
     private LinkedList<Player> playerList = new LinkedList();
     
     // add event listners to avoid nested instance mess
@@ -54,17 +55,19 @@ public class PlayerList implements Serializable, Iterable<Player>
     }
 
     // wrapper for add on linkedlist
-    public void add(Player p) 
+    public void add(Player player) 
     {
-        playerList.add(p);
+        playerList.add(player);
+        numPlayerReady = -1;
         // fire changed event
         triggerObjectChangedEvent();
     }
 
     // wrapper for remove on linkedlist
-    public void remove(Player p) 
+    public void remove(Player player) 
     {
-        playerList.remove(p);
+        playerList.remove(player);
+        numPlayerReady = -1;
         // fire changed event
         triggerObjectChangedEvent();
     }
@@ -74,9 +77,10 @@ public class PlayerList implements Serializable, Iterable<Player>
         return playerList;
     }
 
-    public void setLinkedList(LinkedList<Player> ll) 
+    public void setLinkedList(LinkedList<Player> playerList) 
     {
-        playerList = ll;
+        this.playerList = playerList;
+        numPlayerReady  = -1;
     }
 
     public void renumberIDs() 
@@ -90,25 +94,10 @@ public class PlayerList implements Serializable, Iterable<Player>
         }
     }
 
-    public boolean allReady() 
+    public boolean gameReady() 
     {
-        boolean ready = false;
-        int ctr = 0;
-        
-        for (Player p : playerList) 
-        {
-            // count how many players are ready
-            if (p.isReady()) 
-            {
-                ctr++;
-            }
-        }
-        
-        if ((ctr == playerList.size())) 
-        {
-            ready = true;
-        }
-        return ready;
+        return ((count() == numPlayerReady()) &&
+                (count() >= Util.NUM_MIN_PLAYER));
     }
     
     public int count()
@@ -127,5 +116,37 @@ public class PlayerList implements Serializable, Iterable<Player>
         }
         
         return null;
+    }
+    
+    public static int numPlayerReady(LinkedList<Player> playerList)
+    {
+        int numPlayerReady = 0; 
+        
+        for (Player p : playerList) if(p.isReady()) numPlayerReady++; 
+        
+        return numPlayerReady;     
+    }
+    
+    public int numPlayerReady()
+    {
+        if(numPlayerReady < 0)
+        {
+            numPlayerReady = numPlayerReady(playerList);
+        }
+        
+        return numPlayerReady;       
+    }
+    
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        for(Player player : playerList)
+        {
+            sb.append(player.toString()).append("\n");
+        }
+        
+        return sb.toString();
     }
 }

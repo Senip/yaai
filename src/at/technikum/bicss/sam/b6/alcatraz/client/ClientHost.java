@@ -7,7 +7,7 @@ package at.technikum.bicss.sam.b6.alcatraz.client;
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.MoveListener;
 import at.falb.games.alcatraz.api.Prisoner;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazInitGameException;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
@@ -46,7 +46,7 @@ public class ClientHost implements MoveListener
 
     private String              serverAddr = null;
     private int                 serverPort = 0;
-    private Registry            rmireg     = null;
+    private Registry            rmiReg     = null;
     private ClientGUI           gui        = null;
     private IServer             server     = null;
     private String              rmiURI     = null;
@@ -281,7 +281,7 @@ public class ClientHost implements MoveListener
         {            
             try 
             {
-                rmireg  = LocateRegistry.createRegistry(port);
+                rmiReg  = LocateRegistry.createRegistry(port);
                 success = true;
                 break;
             } 
@@ -331,9 +331,8 @@ public class ClientHost implements MoveListener
             l.debug(me.getRmiURI(name) + "\n" + client);
             Naming.rebind(me.getRmiURI(name), client);
             l.info("Bound client methods to " + rmiURI);
-            Util.logRMIReg(rmireg);
+            Util.logRMIReg(rmiReg);
             me.setName(name);
-            this.rmiURI = rmiURI;
         } 
         catch (RemoteException | MalformedURLException e) 
         {
@@ -530,9 +529,7 @@ public class ClientHost implements MoveListener
     private void updatePlayerList(LinkedList<Player> playerList)
     {
         StringBuilder sb = new StringBuilder();
-        int numPlayerReady = 0;
-        
-        for (Player p : playerList) if(p.isReady()) numPlayerReady++;              
+        int numPlayerReady = PlayerList.numPlayerReady(playerList);            
         
         sb.append(playerList.size()).append(" Player");
         sb.append(playerList.size() >  1 ? "s"            : ""      ).append(" joined (");
@@ -551,14 +548,15 @@ public class ClientHost implements MoveListener
      * This function is used if the Player is registered.
      * The server will send updates to registered players whenever they occure.
      * 
-     * The inGame Parameter is needed for a coordinated start of the game
+     * The gameStarted Parameter is needed for a coordinated start of the game
      * 
      * @param playerList
-     * @param inGame
-     * @throws AlcatrazClientInitGameException 
+     * @param gameStarted
+     * @throws AlcatrazInitGameException 
      */
-    public void processPlayerList(LinkedList<Player> playerList, boolean inGame) throws AlcatrazClientInitGameException
+    public void processPlayerList(LinkedList<Player> playerList, boolean gameStarted) throws AlcatrazInitGameException
     {
+        boolean onTheList  = false;
         int numPlayerReady = 0;
         
         gui.lock(true);
@@ -569,6 +567,7 @@ public class ClientHost implements MoveListener
             //find own entry in list to get ID given by server
             if (p.getName().equals(me.getName())) 
             {
+                onTheList = true;
                 me = p;
             }
             
@@ -578,16 +577,21 @@ public class ClientHost implements MoveListener
                 numPlayerReady++;
             }
         }
-        
+                
         // Store & Display new player list
         updatePlayerList(playerList);
 
+        if(!onTheList)
+        {
+            assert(false);
+        }
+        
         // if all players are ready 
         // AND there are at least 2 players
         // start the game 
         if ((numPlayerReady == playerList.size()) && (numPlayerReady >= Util.NUM_MIN_PLAYER)) 
         {   
-            int i = 1;
+            int i  = 1;
             l.info("Starting the game...");
             
             do
@@ -602,9 +606,9 @@ public class ClientHost implements MoveListener
                 }
                 else
                 {
-                    if(!inGame)
+                    if(!gameStarted)
                     {
-                        AlcatrazClientInitGameException e = new AlcatrazClientInitGameException("Game start failed!");
+                        AlcatrazInitGameException e = new AlcatrazInitGameException("Game start failed!");
                         l.warn(e.getMessage());
                         gui.lock(false);
                         throw e;
@@ -633,11 +637,11 @@ public class ClientHost implements MoveListener
     
     private void startGame()
     {
-        actrz = new Alcatraz();
-        actrz.init(playerList.size(), me.getId());
-        
         inGame = true;  // Lock RMI interface
         
+        actrz  = new Alcatraz();
+        actrz.init(playerList.size(), me.getId());
+                
         for (Player p : playerList) 
         {
             actrz.getPlayer(p.getId()).setName(p.getName());
@@ -669,26 +673,26 @@ public class ClientHost implements MoveListener
             if (player.equals(me)) 
             {
                 numPlayerReady++;
-                break;
+                continue;
             }
             
             try 
             {
                 String rmi_uri = Util.buildRMIString(player.getAddress(), player.getPort(), Util.getClientRMIPath(), player.getName());
-                l.info("Obtaining proxy: " + rmi_uri);
+                l.info("Obtaining proxy from Player '" + player.getName() + "':\n" + rmi_uri);
                 player.setProxy((IClient) Naming.lookup(rmi_uri));
+                player.getProxy().isAlive();
                 numPlayerReady++;   
             } 
             catch (NotBoundException | MalformedURLException | RemoteException e) 
             {
-                l.debug("Contacted player '" + player.getName() + "' failed:\n" + e.getMessage());
+                l.debug("Contacting player '" + player.getName() + "' failed:\n" + e.getMessage());
                 lostPlayer.add(player);
                 i.remove();
             }
         }
         
         l.debug("Number of ready player: " + numPlayerReady);
-        l.debug(playerList.toString());
                 
         return lostPlayer;
     }
@@ -715,7 +719,7 @@ public class ClientHost implements MoveListener
             }
 
             int i = 1;
-            l.debug("Sending move to " + p.toString());
+            l.debug("Sending move to Player '" + p.getName() + "'");
             
             do // Send move 
             {
@@ -734,10 +738,10 @@ public class ClientHost implements MoveListener
                         {
                             try 
                             {
-                                l.debug("Fix statemachine from player " + p.getName());
+                                l.debug("Fix statemachine from player '" + p.getName() + "'");
                                 p.getProxy().updatePlayerList(playerList, true); // inGame == true
                             } 
-                            catch (AlcatrazClientInitGameException ex) 
+                            catch (AlcatrazInitGameException ex) 
                             {
                                 assert false : "PlayerList was sent with Parameter inGame=true";
                             }

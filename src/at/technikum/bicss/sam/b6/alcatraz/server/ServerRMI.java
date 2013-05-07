@@ -4,7 +4,7 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.server;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazInitGameException;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
 import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
@@ -65,13 +65,20 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         playerList.renumberIDs();
         l.info("SERVER: Broadcasting Playerlist");
         
-        boolean isFirstPlayer = true;
-        boolean success       = true;    
+        // If game start
+        if(playerList.gameReady()) { assert(firstPlayer != null); }
+                
+        boolean isFirstPlayer;
+        boolean success;
         boolean retry;
         
         do
         {
-            retry = false;
+            isFirstPlayer = true;
+            success       = true; 
+            retry         = false;
+            
+            l.debug("Broadcast PlayerList: \n" + playerList.toString());
             
             /*
              * The Playerlist is sent to all Players
@@ -96,16 +103,16 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
                     }
                 }
 
-                String rmi_uri = Util.buildRMIString(p.getAddress(), p.getPort(),
+                String rmiURI = Util.buildRMIString(p.getAddress(), p.getPort(),
                                  Util.getClientRMIPath(), p.getName());
-                l.debug("SERVER: Send Playerlist to \n" + rmi_uri);
+                l.debug("SERVER: Send Playerlist to Player '" + p.getName() + "'\n" + rmiURI);
 
                 try 
                 {
-                    IClient client = (IClient) Naming.lookup(rmi_uri);
-                    client.updatePlayerList(playerList.getLinkedList(), false);
+                    IClient client = (IClient) Naming.lookup(rmiURI);
+                    client.updatePlayerList(playerList.getLinkedList(), !isFirstPlayer);
                 }
-                catch (AlcatrazClientInitGameException e)
+                catch (AlcatrazInitGameException e)
                 {
                     l.info("SERVER: Client Error: " + e.getMessage());
 
@@ -140,7 +147,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
                 
                 if(!success)    
                 {              
-                    l.info("SERVER: Deregistered unreachable Player: " + p.getName());      
+                    l.info("SERVER: Deregistered unreachable Player '" + p.getName() + "'");      
                     i.remove();
                     break;
                 }
@@ -169,7 +176,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         masterLock();
         
         // Check if all Players are still there and send the list to the newcommer
-        // while(!broadcastPlayerList());
+        while(!broadcastPlayerList());
         return playerList.getLinkedList();
     }
     
@@ -202,12 +209,13 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         
         try // Check inbound connection
         {
-            Naming.lookup(player.getRmiURI());
+            ((IClient)Naming.lookup(player.getRmiURI())).isAlive();
+            
         }
         catch(NotBoundException | MalformedURLException | RemoteException ex)
         {
             AlcatrazServerException e =
-                    new AlcatrazServerException("Failed to connect (Check your firewall inbound rules)!\n"
+                    new AlcatrazServerException("Failed to connect (Check your firewalls inbound rules)!\n"
                     + ex.getMessage());
             l.warn(e.getMessage());
             throw e;            
@@ -273,8 +281,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
                 l.warn(e.getMessage());
                 throw e;
             } 
-            else if (playerList.allReady() &&           // If Game started
-                     playerList.count() >= Util.NUM_MIN_PLAYER) 
+            else if (playerList.gameReady())          // If Game started
             {
                 spreadServer.setPlayerList(new LinkedList());
                 playerList = spreadServer.getPlayerList();

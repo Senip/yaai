@@ -15,9 +15,12 @@ import java.util.LinkedList;
 public interface IClient extends Remote
 {
     public void updatePlayerList(LinkedList<Player> playerList, boolean inGame) 
-            throws RemoteException, AlcatrazClientInitGameException, AlcatrazClientStateException;
+            throws RemoteException, AlcatrazInitGameException, AlcatrazClientStateException;
 
     public void doMove(Move m)                          
             throws RemoteException, AlcatrazClientStateException;
+    
+    public void isAlive()
+            throws RemoteException;
     
 }

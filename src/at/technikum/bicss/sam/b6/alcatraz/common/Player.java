@@ -42,7 +42,6 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
     {
         this.address = address;
         this.rmiURI  = null;
-        this.proxy   = null;
     }
 
     public int getPort() 
@@ -54,7 +53,6 @@ public class Player extends at.falb.games.alcatraz.api.Player implements Seriali
     {
         this.port    = port;
         this.rmiURI  = null;
-        this.proxy   = null;
     }
     
     public void setProxy(IClient proxy) 
