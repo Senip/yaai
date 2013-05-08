@@ -29,7 +29,7 @@ public class ClientRMI extends UnicastRemoteObject implements IClient
         super();
         hosthandle = host;
     }
-
+    
     public ClientHost getHosthandle() {
         return hosthandle;
     }

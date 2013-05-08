@@ -41,12 +41,9 @@ import org.apache.log4j.PropertyConfigurator;
  */
 public class ClientHost implements MoveListener 
 {
-    private ServerWrapper       serverHdl;
-    private String              serverAddr = null;
-    private int                 serverPort = 0;
+    private ServerWrapper       server     = null;
     private Registry            rmiReg     = null;
     private ClientGUI           gui        = null;
-    private IServer             server     = null;
     private String              rmiURI     = null;
     private IClient             client     = null;
     private LinkedList<Player>  playerList = null;
@@ -81,15 +78,14 @@ public class ClientHost implements MoveListener
         // Clean Up
         client.close();
         l.info("Terminated.");
-        System.exit(0);
-        
+        System.exit(0);        
     }
 
     public ClientHost() 
     {       
-        me  = new Player(null, 0, null, 0, false);        
-        gui = new ClientGUI(this);
-        serverHdl = new ServerWrapper() 
+        me     = new Player(null, 0, null, 0, false);        
+        gui    = new ClientGUI(this);
+        server = new ServerWrapper() 
         {
             @Override
             protected boolean fatal() 
@@ -117,20 +113,16 @@ public class ClientHost implements MoveListener
     public boolean open()
     {
         // Contact Server and Setup RMI
-        if(serverHdl.open())
+        if(server.open())
         {
-        if(contactServer())
-        {
-            setupClientRMIReg();
-            l.info("Alcatraz Client running on port " + me.getPort());
-            gui.lock(false);
-            return true;
+            if(setupClientRMIReg())
+            {
+                l.info("Alcatraz Client running on " + me.getAddress() + ":" + me.getPort());
+                gui.lock(false);
+                return true;
+            }
         }
-        else
-        {
-            return false;
-        }
-        }
+        
         return false;
     }
     
@@ -145,138 +137,18 @@ public class ClientHost implements MoveListener
         try { Naming.unbind(rmiURI);                             } catch (Exception e) { }
         try { UnicastRemoteObject.unexportObject(client, true);  } catch (Exception e) { }
     }
-
-    /**
-     * Tries to find a running Alcatraz server process
-     *
-     * This is done by parsing the server addresses given in the property-file.
-     * 1. Try to establish a connection to a server on the RMI-port with a socket
-     *
-     * 2. if successful, try to ask for the master server address
-     *
-     * 3. if successful and master server is on different address, check again
-     * if master-server is reachable on RMI-port with a socket
-     *
-     * if there is a problem in any of these steps, continue with next address
-     * of property file
-     *
-     * on successful completion {@code _serveraddr} is set to the Alcatraz
-     * master server address and {@code _server) holds a reference to the remote {@link IServer}
-     * object on failure both will be set to {@code null} and the application is terminated
-     * 
-     */
-    private boolean contactServer()
-    {
-        l.info("Try to find server for registration process...");
-        
-        serverAddr  = null;
-        serverPort  = Util.getServerRMIPort();
-        Socket sock;
-        String rmiURI;
-        SocketAddress sock_addr;
-
-        do
-        {
-            boolean success       = false;
-            boolean reachedServer = false;
-            
-            for (String thisAddr : Util.getServerAddressList()) 
-            {
-                try 
-                {
-                    serverAddr        = thisAddr;
-                    
-                    do
-                    {
-                        
-                        // 1. Establish a connetion to a server on the RMI-port with a socket                
-                        sock      = new Socket();
-                        sock_addr = new InetSocketAddress(serverAddr, serverPort);
-                        sock.connect(sock_addr, Util.getConTimeOut());
-                        
-                        // to determine own address of used network interface
-                        me.setAddress("0.0.0.0"); //sock.getLocalAddress().getHostAddress());
-                        l.debug("Reached server:" + serverAddr + ":" + serverPort);
-                        sock.close();
-
-                        // 2. Obtain reference to remote object
-                        rmiURI     = Util.buildRMIString(serverAddr, serverPort, Util.getServerRMIPath());
-                        l.debug("Lookup " + rmiURI);
-                        server     = (IServer) Naming.lookup(rmiURI);
-
-                        // 3. Ask for the master server address
-                        l.debug("Asking for master registration server");
-                        String masterAddr = server.getMasterServer();
-                        l.debug("Master registration server at " + serverAddr + ":" + serverPort);
-
-                        // At least one server is online: 
-                        reachedServer = true;
-                        
-                        // 4. Retry if master server is on different address:
-                        if(!serverAddr.equals(masterAddr))
-                        {
-                            serverAddr = masterAddr;
-                            continue;
-                        }
-                        
-                        break;
-                        
-                    } while(true);
-
-                    l.info("Reached master server");
-                    success = true;
-                    
-                    //server.getPlayerList();
-                    updatePlayerList();         
-                    break;
-                } 
-                catch(NotBoundException | IOException e)  
-                { 
-                    l.warn("Server not reachable " + serverAddr + ":" + serverPort);
-                    l.debug(e.getMessage());
-                    serverAddr = null;
-                    server     = null;
-                }
-            }
-            
-            if(!success && reachedServer)  
-            {
-                // Reached Server, but can not connect to master
-                // New master is elected --> retry 
-                continue;
-            }
-            
-            break;
-                        
-        } while(true);
-
-        if (Util.isEmpty(serverAddr)) 
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.append("It was not possible to connect to a server at any of the adresses below:\n\n");
-            
-            for (String s : Util.getServerAddressList()) 
-            {
-                sb.append(s).append("\n");
-            }
-            
-            sb.append("\n Check your config file. ");
-            sb.append("Ensure that at least one registration server is online");
-            l.fatal(sb.toString());
-            
-            return false;
-        }       
-        
-        return true;
-    }
    
-    private void setupClientRMIReg() 
+    private boolean setupClientRMIReg() 
     {
         /*
          * http://docs.oracle.com/javase/1.4.2/docs/guide/rmi/javarmiproperties.html
          * use own address to be associated with remote stubs for locally
          * created remote objects
          */
+        
+        // Set listen IP Address
+        me.setAddress(server.getMyAddr());
+        System.setProperty("java.rmi.server.hostname", me.getAddress());  
         
         try 
         {
@@ -289,9 +161,7 @@ public class ClientHost implements MoveListener
                      "using an anonymous port" + e.getMessage(), e);
             System.exit(1);
         }
-        
-        // Liste on all IP Adresses
-        System.setProperty("java.rmi.server.hostname", "0.0.0.0");
+             
 
         // get default client RMI port from prop-file
         int port = Util.getClientRMIPort();
@@ -299,30 +169,46 @@ public class ClientHost implements MoveListener
         // Setup Registry
         l.info("Set up RMI registry for own client services...");
         
-        boolean success = false;
-        for(int i = 1; !(success) && (i <= Util.CLIENT_RMIREG_RETRY_MAX); i++)
-        {            
-            try 
-            {
-                rmiReg  = LocateRegistry.createRegistry(port);
-                success = true;
-                break;
-            } 
-            catch (RemoteException e) 
-            {
-                l.debug("Not able to create registry on port: " + port);
-                port = Util.getRandomPort();
-                l.debug("trying different port: " + port);
-            }            
-        }
-        
-        if(!success)
+        boolean success;
+        do
         {
-            l.fatal("Unable to set up RMI registry for client services ");
-            System.exit(1);
+            success = false;
+        
+            for(int i = 1; !(success) && (i <= Util.CLIENT_RMIREG_RETRY_MAX); i++)
+            {            
+                try 
+                {
+                    rmiReg  = LocateRegistry.createRegistry(port);
+                    success = true;
+                    break;
+                } 
+                catch (RemoteException e) 
+                {
+                    l.debug("Not able to create registry on port: " + port);
+                    port = Util.getRandomPort();
+                    l.debug("trying different port: " + port);
+                }   
+            }
+            
+            if(!success)
+            {
+                l.fatal("Unable to set up RMI registry for client services ");
+                if(Util.retryExit(gui, "Do you want to retry to setup RMI registry") == JOptionPane.YES_OPTION)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }    
+            }
+            
+            me.setPort(port);    
+            break;
         }
-
-        me.setPort(port);
+        while(true);
+        
+        return success;
     }
 
     /**
@@ -333,7 +219,7 @@ public class ClientHost implements MoveListener
      * 
      * @return if p is registered
      */
-    public boolean isPlayerRegistered() throws RemoteException
+    public boolean isPlayerRegistered()
     {         
         boolean found = false;
         for(Player p : updatePlayerList())
@@ -382,8 +268,6 @@ public class ClientHost implements MoveListener
      */
     public boolean registerPlayer(String name) 
     {
-        boolean retry;
-        int     i       = 1;
         boolean success = false;
         
         me.setName(null);
@@ -391,28 +275,18 @@ public class ClientHost implements MoveListener
         // Register Player at Server
         if (bind(name)) 
         { 
-            l.debug("Try to register " + me.getName());
-            do
-            { 
-                if(i > 1) { l.info("#" + i + " Attempt..."); }
-                retry = false;
-                
-                try 
-                {
-                    me = server.register(me.getName(), me.getPort());
-                    l.info("Registered " + me.getName() + " at server " + serverAddr + ":" + serverPort);
-                    success = true;
-                } 
-                catch (AlcatrazServerException e) 
-                {
-                    l.error("Server refused registration:\n" + e.getMessage());
-                } 
-                catch (RemoteException e) 
-                {
-                    l.info("Relocating server...");
-                    retry = contactServer();
-                }
-            } while(retry);
+            l.debug("Try to register Player '" + me.getName() + "' on " + me.getAddress() + ":" + me.getPort());
+
+            try 
+            {
+                me = server.register(me.getName(), me.getAddress(), me.getPort());
+                l.info("Registered " + me.getName() + " at server " + server.getAddr() + ":" + server.getPort());
+                success = true;
+            } 
+            catch (AlcatrazServerException e) 
+            {
+                l.error("Server refused registration:\n" + e.getMessage());
+            } 
         }
         
         if(!success)
@@ -430,8 +304,6 @@ public class ClientHost implements MoveListener
      */
     public boolean unregisterPlayer() 
     {
-        boolean retry;
-        int     i       = 1;
         boolean success = false;
 
         l.info("Try to remove player methods from registry");
@@ -440,45 +312,31 @@ public class ClientHost implements MoveListener
         // Unregister Player at Server
         l.debug("Try to unregister " + me.getName());
         
-        do
+        try
         {
-            retry = false;
-            if(i > 1) { l.info("#" + i + " Attempt..."); }
-            
-            try 
+            if(!success)
             {
-                try
-                {
-                    if(!success)
-                    {
-                        server.deregister(me.getName());
-                        success = true;
-                    }
-                    updatePlayerList();
-                }   
-                catch (AlcatrazServerException e) 
-                {               
-                    if(isPlayerRegistered())
-                    {
-                        l.error("Server refused to unregister:\n" + e.getMessage(), e);
-                    }
-                    else
-                    {
-                        l.debug("Client statemachine fixed");
-                        success = true;  
-                    }
-                } 
-            } 
-            catch (RemoteException e) 
-            {
-                l.info("Relocating server...");
-                retry = contactServer();
+                server.deregister(me.getName());
+                success = true;
             }
-        } while(retry);
+            updatePlayerList();
+        }   
+        catch (AlcatrazServerException e) 
+        {               
+            if(isPlayerRegistered())
+            {
+                l.error("Server refused to unregister:\n" + e.getMessage(), e);
+            }
+            else
+            {
+                l.debug("Client statemachine fixed");
+                success = true;  
+            }
+        } 
             
         if(success)
         {
-            l.info("Unregistered " + me.getName() + " from server " + serverAddr + ":" + serverPort);
+            l.info("Unregistered " + me.getName() + " from server " + server.getAddr() + ":" + server.getPort());
             me.setName(null);
         }
         
@@ -493,44 +351,29 @@ public class ClientHost implements MoveListener
      */
     public boolean setReady(boolean state) 
     {
-        boolean retry;
-        int     i       = 1;
         boolean success = false;
         l.debug("Try to update ready state of " + me.getName() + " to " + state);
         
-        do
+        try
         {
-            retry = false;
-            if(i > 1) { l.info("#" + i + " Attempt..."); }
-            
-            try
+            server.setStatus(me.getName(), state);
+            success = true;
+        } 
+        catch (AlcatrazServerException e) 
+        {    
+            if(!isPlayerRegistered())
             {
-                try
-                {
-                    server.setStatus(me.getName(), state);
-                    success = true;
-                } 
-                catch (AlcatrazServerException e) 
-                {    
-                    if(!isPlayerRegistered())
-                    {
-                        l.debug("Client statemachine fixed");
-                        l.error("Session expired. Please re-register!");
-                        success = true;
-                    }
+                l.debug("Client statemachine fixed");
+                unregisterPlayer();
+                l.error("Please re-register!");
+                success = true;
+            }
 
-                    if(!success)
-                    {
-                        l.error("Server refused to set ready status:\n" + e.getMessage());  
-                    }
-                } 
-            }
-            catch (RemoteException e) 
+            if(!success)
             {
-                l.info("Relocating server...");
-                retry = contactServer();
+                l.error("Server refused to set ready status:\n" + e.getMessage());  
             }
-        } while(retry);
+        } 
         
         return success;
     }
@@ -543,7 +386,7 @@ public class ClientHost implements MoveListener
      * @return PlayerList
      * @throws RemoteException 
      */
-    private LinkedList<Player> updatePlayerList() throws RemoteException
+    private LinkedList<Player> updatePlayerList()
     {
         updatePlayerList(server.getPlayerList());  
         return this.playerList;
@@ -790,25 +633,30 @@ public class ClientHost implements MoveListener
     @Override
     public void gameWon(at.falb.games.alcatraz.api.Player player) 
     { 
-        inGame = false;
-        l.info(player.getName() + " has won the game");        
-
-        actrz.closeWindow();
-        actrz.disposeWindow();
-        
-        gui.setVisible(true);
-        Util.warnUser(gui, (player.getName() + " has won the game"));
-        
-        playerList = new LinkedList();
-        gui.updatePlayerList(playerList);
-        gui.reset();
+        Util.warnUser(gui, (player.getName() + " has won the game"));        
+        reset();
     }
     
     public void gameExit()
     {
         if(Util.yesnocancel(actrz.getWindow(), "Do you really want to quit the game?") == JOptionPane.YES_OPTION)
         {
-            System.exit(0);
+            reset();
         }
+    }
+    
+    public void reset()
+    {
+        inGame = false;    
+
+        actrz.closeWindow();
+        actrz.disposeWindow();
+        actrz = null;
+        
+        gui.setVisible(true);
+        
+        playerList = new LinkedList();
+        gui.updatePlayerList(playerList);
+        gui.reset();
     }
 }

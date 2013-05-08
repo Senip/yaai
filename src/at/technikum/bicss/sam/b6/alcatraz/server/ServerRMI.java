@@ -85,9 +85,7 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
             isFirstPlayer = true;
             success       = true; 
             retry         = false;
-            
-            l.debug("Broadcast PlayerList: \n" + playerList.toString());
-            
+                        
             /*
              * The Playerlist is sent to all Players
              * If a Player disconnected, he is removed from the list
@@ -189,22 +187,11 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     }
     
     @Override
-    public synchronized Player register(String name, int port) throws RemoteException, AlcatrazServerException 
-    {
-        String address;
-        
+    public synchronized Player register(String name, String address, int port) throws RemoteException, AlcatrazServerException 
+    {   
+        l.info("lol");
         masterLock();
-        
-        try 
-        {
-            address = RemoteServer.getClientHost();
-        } 
-        catch (ServerNotActiveException e) 
-        {
-            l.info("SERVER: New player registration failed:\n" + e.getMessage());
-            return null;
-        }
-        
+                       
         Player player = new Player(name, 0, address, port, false);
         l.info("SERVER: New player wants to register:\n" + player.toString());
 
@@ -294,17 +281,22 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
             // Broadcast Player List: Start with player            
             while(!broadcastPlayerList(player)) {};
             
-            if(!player.isReady())                       // Game start failed
+            if(ready && !player.isReady())                       // Game start failed
             {
                 AlcatrazServerException e = 
                         new AlcatrazServerException("Game start failed. Please try again!");
                 l.warn(e.getMessage());
                 throw e;
             } 
-            else if (playerList.gameReady())          // If Game started
+            else
             {
-                spreadServer.setPlayerList(new LinkedList());
-                playerList = spreadServer.getPlayerList();
+                assert(ready == player.isReady()) : "Unable to update Player's ready state";
+                
+                if (playerList.gameReady())          // If Game started
+                {
+                    spreadServer.setPlayerList(new LinkedList());
+                    playerList = spreadServer.getPlayerList();
+                }
             }
             
             playerList.triggerObjectChangedEvent();

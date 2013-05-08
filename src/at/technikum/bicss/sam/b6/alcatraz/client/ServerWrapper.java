@@ -27,8 +27,22 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
 {
     private IServer server   = null;
     private String  addr     = null;
+    private String  myAddr   = null;
     private int     port     = Util.getServerRMIPort();
     private static  Logger l = Util.getLogger();
+
+    public String getAddr() {
+        return addr;
+    }
+    
+    public int getPort() {
+        return port;
+    }
+    
+    public String getMyAddr()
+    {
+        return myAddr;
+    }
     
     // Hint: This can be done in a more elegant way using reflection 
     protected abstract boolean fatal();            
@@ -54,7 +68,7 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
     }
     
     @Override
-    public LinkedList<Player> getPlayerList() throws RemoteException
+    public LinkedList<Player> getPlayerList()
     {
         boolean retry;
         
@@ -76,11 +90,13 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
 
         } while(retry);
         
-        throw new RemoteException("Permanent Error");
+        l.debug("Permanent Error");
+        System.exit(1);
+        return null;
     }
 
     @Override
-    public Player register(String name, int port) throws RemoteException, AlcatrazServerException 
+    public Player register(String name, String address, int port) throws AlcatrazServerException 
     {
         boolean retry;
         
@@ -88,14 +104,16 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
         {            
             try                       
             { 
-                return server.register(name, port);
+                return server.register(name, address, port);
             } 
             catch (RemoteException e) 
             {
+                l.debug(("Fehler"));
                 retry = connect();
             }
             catch (AlcatrazNotMasterException e)
             {
+                l.debug(("Not Master"));
                 retry = connect(getMasterServer());
             }
             
@@ -106,11 +124,13 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
 
         } while(retry);
         
-        throw new RemoteException("Permanent Error");
+        l.debug("Permanent Error");
+        System.exit(1);
+        return null;
     }
 
     @Override
-    public void deregister(String name) throws RemoteException, AlcatrazServerException 
+    public void deregister(String name) throws AlcatrazServerException 
     {
         boolean retry;
         
@@ -137,11 +157,12 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
 
         } while(retry);
         
-        throw new RemoteException("Permanent Error");
+        l.debug("Permanent Error");
+        System.exit(1);
     }
 
     @Override
-    public void setStatus(String name, boolean ready) throws RemoteException, AlcatrazServerException 
+    public void setStatus(String name, boolean ready) throws AlcatrazServerException 
     {
         boolean retry;
         
@@ -168,11 +189,12 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
 
         } while(retry);
         
-        throw new RemoteException("Permanent Error");
+        l.debug("Permanent Error");
+        System.exit(1);
     }
 
     @Override
-    public String getMasterServer() throws RemoteException 
+    public String getMasterServer()
     {
         boolean retry;
         
@@ -194,7 +216,9 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
 
         } while(retry);
         
-        throw new RemoteException("Permanent Error");
+        l.debug("Permanent Error");
+        System.exit(1);
+        return null;
     }
     
     
@@ -273,6 +297,8 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
                         sock_addr = new InetSocketAddress(addr, port);
 
                         sock.connect(sock_addr, Util.getConTimeOut());
+                        // Get my own Addres:
+                        myAddr = sock.getLocalAddress().getHostAddress();
                         l.debug("Reached server:" + addr + ":" + port);
                         sock.close();
 

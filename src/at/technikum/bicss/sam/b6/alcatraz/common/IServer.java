@@ -16,9 +16,9 @@ import java.util.LinkedList;
  */
 public interface IServer extends Remote 
 {
-    public LinkedList<Player> getPlayerList()                        throws RemoteException;
-    public Player             register  (String name, int port)      throws RemoteException, AlcatrazServerException, AlcatrazNotMasterException;
-    public void               deregister(String name)                throws RemoteException, AlcatrazServerException, AlcatrazNotMasterException;
-    public void               setStatus (String name, boolean ready) throws RemoteException, AlcatrazServerException, AlcatrazNotMasterException;
-    public String             getMasterServer()                      throws RemoteException;
+    public LinkedList<Player> getPlayerList()                                        throws RemoteException;
+    public Player             register  (String name, String address, int port)      throws RemoteException, AlcatrazServerException, AlcatrazNotMasterException;
+    public void               deregister(String name)                                throws RemoteException, AlcatrazServerException, AlcatrazNotMasterException;
+    public void               setStatus (String name, boolean ready)                 throws RemoteException, AlcatrazServerException, AlcatrazNotMasterException;
+    public String             getMasterServer()                                      throws RemoteException;
 }
