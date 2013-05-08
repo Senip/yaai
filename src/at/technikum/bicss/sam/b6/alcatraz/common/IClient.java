@@ -4,6 +4,8 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.common;
 
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazClientStateException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.LinkedList;

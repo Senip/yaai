@@ -2,18 +2,18 @@
  *  yaai - Yet Another Alcatraz Implementation 
  *  BICSS-B6 2013
  */
-package at.technikum.bicss.sam.b6.alcatraz.common;
+package at.technikum.bicss.sam.b6.alcatraz.common.exception;
 
 /**
  *
  * @author 
  */
-public class AlcatrazClientStateException extends Exception {
+public class AlcatrazServerException extends Exception {
 
     /**
      * Alcatraz Server Exception
      */
-    public AlcatrazClientStateException() {
+    public AlcatrazServerException() {
     }
 
     /**     
@@ -21,7 +21,7 @@ public class AlcatrazClientStateException extends Exception {
      * 
      * @param msg the detail message.
      */
-    public AlcatrazClientStateException(String msg) {
+    public AlcatrazServerException(String msg) {
         super(msg);
     }
 }

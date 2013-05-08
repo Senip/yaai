@@ -4,8 +4,8 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.client;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazInitGameException;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazClientStateException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.Move;
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;

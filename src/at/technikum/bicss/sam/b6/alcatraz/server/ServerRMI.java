@@ -4,9 +4,9 @@
  */
 package at.technikum.bicss.sam.b6.alcatraz.server;
 
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazInitGameException;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazClientStateException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazServerException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
 import at.technikum.bicss.sam.b6.alcatraz.common.Player;
@@ -17,9 +17,12 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.server.RemoteServer;
+import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -62,16 +65,21 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
     
     private boolean broadcastPlayerList(Player firstPlayer) 
     {
-        playerList.renumberIDs();
-        l.info("SERVER: Broadcasting Playerlist");
-        
-        // If game start
-        if(playerList.gameReady()) { assert(firstPlayer != null); }
-                
         boolean isFirstPlayer;
         boolean success;
         boolean retry;
         
+        l.info("SERVER: Broadcasting Playerlist");
+        
+        // If list is empty...
+        if(playerList.count() == 0) { return true; }    // ..nothing to do
+           
+        // If game start
+        if(playerList.gameReady())  { assert(firstPlayer != null) : "Game must be started by a Player"; }
+        
+        // Remove Gaps
+        playerList.renumberIDs();
+                                
         do
         {
             isFirstPlayer = true;
@@ -176,14 +184,26 @@ public class ServerRMI extends UnicastRemoteObject implements IServer
         masterLock();
         
         // Check if all Players are still there and send the list to the newcommer
-        while(!broadcastPlayerList());
+        while(!broadcastPlayerList()) { };
         return playerList.getLinkedList();
     }
     
     @Override
-    public synchronized Player register(String name, String address, int port) throws RemoteException, AlcatrazServerException 
+    public synchronized Player register(String name, int port) throws RemoteException, AlcatrazServerException 
     {
+        String address;
+        
         masterLock();
+        
+        try 
+        {
+            address = RemoteServer.getClientHost();
+        } 
+        catch (ServerNotActiveException e) 
+        {
+            l.info("SERVER: New player registration failed:\n" + e.getMessage());
+            return null;
+        }
         
         Player player = new Player(name, 0, address, port, false);
         l.info("SERVER: New player wants to register:\n" + player.toString());

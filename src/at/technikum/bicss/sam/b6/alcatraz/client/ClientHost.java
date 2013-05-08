@@ -7,9 +7,9 @@ package at.technikum.bicss.sam.b6.alcatraz.client;
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.MoveListener;
 import at.falb.games.alcatraz.api.Prisoner;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazInitGameException;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazClientStateException;
-import at.technikum.bicss.sam.b6.alcatraz.common.AlcatrazServerException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazInitGameException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazClientStateException;
+import at.technikum.bicss.sam.b6.alcatraz.common.exception.AlcatrazServerException;
 import at.technikum.bicss.sam.b6.alcatraz.common.IClient;
 import at.technikum.bicss.sam.b6.alcatraz.common.IServer;
 import at.technikum.bicss.sam.b6.alcatraz.common.Move;
@@ -88,7 +88,7 @@ public class ClientHost implements MoveListener
     }
 
     public ClientHost() 
-    {        
+    {       
         me  = new Player(null, 0, null, 0, false);        
         gui = new ClientGUI(this);
         
@@ -102,7 +102,7 @@ public class ClientHost implements MoveListener
         if(contactServer())
         {
             setupClientRMIReg();
-            l.info("Alcatraz Client running on " + me.getAddress() + ":" + me.getPort());
+            l.info("Alcatraz Client running on port " + me.getPort());
             gui.lock(false);
             return true;
         }
@@ -173,7 +173,7 @@ public class ClientHost implements MoveListener
                         sock.connect(sock_addr, Util.getConTimeOut());
                         
                         // to determine own address of used network interface
-                        me.setAddress(sock.getLocalAddress().getHostAddress());
+                        me.setAddress("0.0.0.0"); //sock.getLocalAddress().getHostAddress());
                         l.debug("Reached server:" + serverAddr + ":" + serverPort);
                         sock.close();
 
@@ -268,7 +268,8 @@ public class ClientHost implements MoveListener
             System.exit(1);
         }
         
-        System.setProperty("java.rmi.server.hostname", me.getAddress());
+        // Liste on all IP Adresses
+        System.setProperty("java.rmi.server.hostname", "0.0.0.0");
 
         // get default client RMI port from prop-file
         int port = Util.getClientRMIPort();
@@ -330,7 +331,7 @@ public class ClientHost implements MoveListener
             rmiURI = me.getRmiURI(name);
             l.debug(me.getRmiURI(name) + "\n" + client);
             Naming.rebind(me.getRmiURI(name), client);
-            l.info("Bound client methods to " + rmiURI);
+            l.info("Bound client methods at port " + rmiURI);
             Util.logRMIReg(rmiReg);
             me.setName(name);
         } 
@@ -376,7 +377,7 @@ public class ClientHost implements MoveListener
                 
                 try 
                 {
-                    me = server.register(me.getName(), me.getAddress(), me.getPort());
+                    me = server.register(me.getName(), me.getPort());
                     l.info("Registered " + me.getName() + " at server " + serverAddr + ":" + serverPort);
                     success = true;
                 } 
