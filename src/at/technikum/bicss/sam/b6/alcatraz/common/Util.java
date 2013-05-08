@@ -326,4 +326,17 @@ public final class Util
     {
         return JOptionPane.showConfirmDialog(frm, message,"Question", JOptionPane.YES_NO_CANCEL_OPTION);
     }
+    
+    public static int retryExit(JFrame frm, String message) 
+    {
+        Object[] options = {"Retry", "Exit"};
+        return JOptionPane.showOptionDialog(frm,
+                message,
+                "Question",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
+    }
 }

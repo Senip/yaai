@@ -29,10 +29,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.logging.Level;
 import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -43,7 +41,7 @@ import org.apache.log4j.PropertyConfigurator;
  */
 public class ClientHost implements MoveListener 
 {
-
+    private ServerWrapper       serverHdl;
     private String              serverAddr = null;
     private int                 serverPort = 0;
     private Registry            rmiReg     = null;
@@ -91,6 +89,26 @@ public class ClientHost implements MoveListener
     {       
         me  = new Player(null, 0, null, 0, false);        
         gui = new ClientGUI(this);
+        serverHdl = new ServerWrapper() 
+        {
+            @Override
+            protected boolean fatal() 
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append("It was not possible to connect to any of the server adresses below:\n\n");
+
+                for (String s : Util.getServerAddressList()) 
+                {
+                    sb.append(s).append("\n");
+                }
+
+                sb.append("\n Check your config file. ");
+                sb.append("Ensure that at least one registration server is online");
+                l.fatal(sb.toString());
+
+                return (Util.retryExit(gui, "Do you want to retry to connect?") == JOptionPane.YES_OPTION);
+            }
+        };
         
         gui.lock(true);
         gui.setVisible(true);    
@@ -99,6 +117,8 @@ public class ClientHost implements MoveListener
     public boolean open()
     {
         // Contact Server and Setup RMI
+        if(serverHdl.open())
+        {
         if(contactServer())
         {
             setupClientRMIReg();
@@ -110,6 +130,8 @@ public class ClientHost implements MoveListener
         {
             return false;
         }
+        }
+        return false;
     }
     
     public void waitForExit()

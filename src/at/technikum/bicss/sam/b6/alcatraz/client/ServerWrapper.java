@@ -16,9 +16,7 @@ import java.net.SocketAddress;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -34,7 +32,27 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
     
     // Hint: This can be done in a more elegant way using reflection 
     protected abstract boolean fatal();            
+
+    public boolean open()
+    {
+        boolean retry;
         
+        do
+        {
+            if(connect())
+            {
+                return true;
+            }
+            else
+            {
+                retry = fatal();
+            }
+            
+        } while(retry);
+        
+        return false;
+    }
+    
     @Override
     public LinkedList<Player> getPlayerList() throws RemoteException
     {
@@ -207,7 +225,14 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
     
     private boolean connect(String firstAddr)
     {
-        l.info("Try to find server for registration process...");
+        if(server == null)
+        {
+            l.info("Try to find server for registration process...");
+        }
+        else
+        {
+            l.info("Relocating server...");
+        }
         
         Socket sock;
         String rmiURI;
@@ -276,6 +301,7 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
                     } while(true);
 
                     l.info("Reached master server");
+                    success = true;
                     break;
                 } 
                 catch(NotBoundException | IOException e)  
@@ -299,19 +325,7 @@ public abstract class ServerWrapper extends RemoteWrapper implements IServer
         } while(true);
 
         if (Util.isEmpty(addr)) 
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.append("It was not possible to connect to a server at any of the adresses below:\n\n");
-            
-            for (String s : Util.getServerAddressList()) 
-            {
-                sb.append(s).append("\n");
-            }
-            
-            sb.append("\n Check your config file. ");
-            sb.append("Ensure that at least one registration server is online");
-            l.fatal(sb.toString());
-            
+        {            
             return false;
         }       
         
